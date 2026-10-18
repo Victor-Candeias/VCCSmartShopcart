@@ -1,6 +1,16 @@
 package pt.vcc.smartshopcart.feature.reports
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.onEach
+import org.junit.Assert.assertFalse
+import pt.vcc.smartshopcart.data.reports.export.ExportCoordinator
+import pt.vcc.smartshopcart.data.reports.export.ExportFormat
+import pt.vcc.smartshopcart.data.reports.export.ExportOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +49,7 @@ class ReportsViewModelTest {
     private val now = LocalDateTime.of(2026, 4, 15, 12, 0).atZone(zone).toInstant().toEpochMilli()
     private val repository = FakeReportsRepository()
     private val savedState = SavedStateHandle()
+    private val exports = mockk<ExportCoordinator>(relaxed = true)
     private lateinit var viewModel: ReportsViewModel
 
     @Before
@@ -61,7 +72,30 @@ class ReportsViewModelTest {
         repository,
         { now },
         { zone },
+        exports,
     )
+
+    @Test
+    fun `exportar para partilha emite o ficheiro e erros sao reportados`() = runTest(dispatcher) {
+        viewModel.state.launchIn(backgroundScope)
+        val events = mutableListOf<ExportEvent>()
+        viewModel.exportEvents.onEach { events += it }.launchIn(backgroundScope)
+        val file = java.io.File("relatorio.csv")
+        val uri = mockk<Uri>()
+        coEvery { exports.writeShareFile(any(), ExportFormat.CSV, any(), "relatorio") } returns file
+        every { exports.shareUri(file) } returns uri
+
+        viewModel.exportForShare(ExportFormat.CSV, ExportOptions(), "relatorio")
+
+        assertEquals(listOf<ExportEvent>(ExportEvent.Share(uri, "text/csv")), events)
+        coVerify { exports.writeShareFile(match { it.summary.totalCents == 1_300L }, ExportFormat.CSV, ExportOptions(), "relatorio") }
+
+        coEvery { exports.writeToUri(uri, any(), ExportFormat.JSON, any()) } throws java.io.IOException("disco cheio")
+        viewModel.exportToUri(uri, ExportFormat.JSON, ExportOptions())
+
+        assertEquals(ExportEvent.Failed("disco cheio"), events.last())
+        assertFalse(viewModel.exporting.value)
+    }
 
     @Test
     fun `abre no mes atual com todos os modos`() = runTest(dispatcher) {

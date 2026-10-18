@@ -1,5 +1,12 @@
 package pt.vcc.smartshopcart.feature.reports
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,16 +25,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import pt.vcc.smartshopcart.data.reports.export.ExportCoordinator
+import pt.vcc.smartshopcart.data.reports.export.ExportFormat
+import pt.vcc.smartshopcart.data.reports.export.ExportGranularity
+import pt.vcc.smartshopcart.data.reports.export.ExportOptions
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -53,16 +71,66 @@ fun ReportsHomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val exporting by viewModel.exporting.collectAsStateWithLifecycle()
     var showFilters by rememberSaveable { mutableStateOf(false) }
     var showRangePicker by rememberSaveable { mutableStateOf(false) }
+    var showExport by rememberSaveable { mutableStateOf(false) }
+    var pendingFormat by rememberSaveable { mutableStateOf<ExportFormat?>(null) }
+    var pendingGranularity by rememberSaveable { mutableStateOf(ExportGranularity.ITEMS) }
+    val context = LocalContext.current
+    val snackbar = remember { SnackbarHostState() }
+    val doneText = stringResource(R.string.reports_export_done)
+    val failedText = stringResource(R.string.reports_export_failed)
+    val noAppText = stringResource(R.string.reports_export_no_app)
+    val shareTitle = stringResource(R.string.reports_export_share)
+
+    val createDocument = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data
+        val format = pendingFormat
+        if (result.resultCode == Activity.RESULT_OK && uri != null && format != null) {
+            viewModel.exportToUri(uri, format, ExportOptions(pendingGranularity))
+        }
+        pendingFormat = null
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.exportEvents.collect { event ->
+            when (event) {
+                ExportEvent.Saved -> {
+                    showExport = false
+                    snackbar.showSnackbar(doneText)
+                }
+                is ExportEvent.Share -> {
+                    showExport = false
+                    val send = Intent(Intent.ACTION_SEND).apply {
+                        type = event.mimeType
+                        putExtra(Intent.EXTRA_STREAM, event.uri)
+                        clipData = ClipData.newRawUri("", event.uri)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    try {
+                        context.startActivity(Intent.createChooser(send, shareTitle))
+                    } catch (_: ActivityNotFoundException) {
+                        snackbar.showSnackbar(noAppText)
+                    }
+                }
+                is ExportEvent.Failed -> snackbar.showSnackbar(String.format(failedText, event.message))
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.reports_title)) },
                 actions = {
                     IconButton(onClick = { showFilters = true }, enabled = state is ReportsUiState.Ready) {
                         Icon(painterResource(R.drawable.ic_filter), contentDescription = stringResource(R.string.reports_filters))
+                    }
+                    val canExport = (state as? ReportsUiState.Ready)?.view?.report?.isEmpty == false
+                    IconButton(onClick = { showExport = true }, enabled = canExport) {
+                        Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.reports_export))
                     }
                 },
             )
@@ -109,6 +177,30 @@ fun ReportsHomeScreen(
             onToggleProduct = viewModel::toggleProduct,
             onClear = viewModel::clearDimensionFilters,
             onPickRange = { showRangePicker = true },
+        )
+    }
+    if (showExport && current is ReportsUiState.Ready) {
+        ExportReportSheet(
+            formats = viewModel.exportFormats,
+            defaultName = { viewModel.defaultExportName(it).orEmpty() },
+            exporting = exporting,
+            onSave = { format, options, name ->
+                pendingFormat = format
+                pendingGranularity = options.granularity
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = format.mimeType
+                    putExtra(Intent.EXTRA_TITLE, ExportCoordinator.sanitizeFileName(name, format))
+                }
+                try {
+                    createDocument.launch(intent)
+                } catch (_: ActivityNotFoundException) {
+                    pendingFormat = null
+                    Toast.makeText(context, noAppText, Toast.LENGTH_LONG).show()
+                }
+            },
+            onShare = viewModel::exportForShare,
+            onDismiss = { showExport = false },
         )
     }
     if (showRangePicker) {

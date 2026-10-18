@@ -409,4 +409,21 @@
         <item quantity="one">%d artigo</item>
         <item quantity="other">%d artigos</item>
     </plurals>
+    <string name="reports_export">Exportar</string>
+    <string name="reports_export_title">Exportar relatório</string>
+    <string name="reports_export_format">Formato</string>
+    <string name="reports_export_format_csv">CSV — Excel ou LibreOffice</string>
+    <string name="reports_export_format_json">JSON — dados estruturados</string>
+    <string name="reports_export_format_pdf">PDF — relatório para imprimir</string>
+    <string name="reports_export_granularity">Detalhe</string>
+    <string name="reports_export_items">Um registo por artigo</string>
+    <string name="reports_export_transactions">Um registo por compra/despesa</string>
+    <string name="reports_export_file_name">Nome do ficheiro</string>
+    <string name="reports_export_save">Guardar em…</string>
+    <string name="reports_export_share">Partilhar</string>
+    <string name="reports_export_in_progress">A exportar…</string>
+    <string name="reports_export_done">Relatório exportado.</string>
+    <string name="reports_export_failed">Falha na exportação: %1$s</string>
+    <string name="reports_export_no_app">Nenhuma aplicação disponível para esta ação.</string>
+    <string name="reports_export_privacy">O ficheiro é gerado no dispositivo; nada é enviado para servidores.</string>
 </resources>

@@ -1,19 +1,29 @@
 package pt.vcc.smartshopcart.feature.reports
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import pt.vcc.smartshopcart.core.common.TimeProvider
 import pt.vcc.smartshopcart.core.common.ZoneProvider
+import pt.vcc.smartshopcart.data.reports.export.ExportCoordinator
+import pt.vcc.smartshopcart.data.reports.export.ExportFormat
+import pt.vcc.smartshopcart.data.reports.export.ExportOptions
 import pt.vcc.smartshopcart.domain.reports.GenerateReportUseCase
 import pt.vcc.smartshopcart.domain.reports.ProductBreakdown
 import pt.vcc.smartshopcart.domain.reports.ReportBreakdown
@@ -48,6 +58,12 @@ sealed interface ReportsUiState {
     data class Error(val message: String) : ReportsUiState
 }
 
+sealed interface ExportEvent {
+    data object Saved : ExportEvent
+    data class Share(val uri: Uri, val mimeType: String) : ExportEvent
+    data class Failed(val message: String) : ExportEvent
+}
+
 /**
  * Estado dos relatórios, partilhado pelo ecrã principal e pelos detalhes. Os filtros vivem no
  * [SavedStateHandle]; o relatório é recalculado quando mudam os filtros ou os dados na base de dados.
@@ -60,9 +76,17 @@ class ReportsViewModel @Inject constructor(
     repository: ReportsRepository,
     private val time: TimeProvider,
     private val zones: ZoneProvider,
+    private val exports: ExportCoordinator,
 ) : ViewModel() {
 
     private val retry = MutableStateFlow(0)
+    private val exportEventsChannel = Channel<ExportEvent>(Channel.BUFFERED)
+    private val exportingState = MutableStateFlow(false)
+
+    /** Resultado das exportações (guardado, partilhar, erro), consumido uma vez pelo ecrã. */
+    val exportEvents: Flow<ExportEvent> = exportEventsChannel.receiveAsFlow()
+    val exporting: StateFlow<Boolean> = exportingState.asStateFlow()
+    val exportFormats: List<ExportFormat> get() = exports.availableFormats
 
     private val storedFilter = combine(
         savedStateHandle.getStateFlow(KEY_PRESET, ReportPeriodPreset.THIS_MONTH.name),
@@ -129,6 +153,39 @@ class ReportsViewModel @Inject constructor(
     fun retry() {
         retry.value++
     }
+
+    fun defaultExportName(format: ExportFormat): String? = currentReport()?.let { exports.defaultFileName(it, format) }
+
+    /** Exporta o relatório visível (instantâneo imutável) para o documento escolhido no SAF. */
+    fun exportToUri(uri: Uri, format: ExportFormat, options: ExportOptions) = runExport {
+        exports.writeToUri(uri, it, format, options)
+        ExportEvent.Saved
+    }
+
+    fun exportForShare(format: ExportFormat, options: ExportOptions, fileName: String) = runExport {
+        val file = exports.writeShareFile(it, format, options, fileName)
+        ExportEvent.Share(exports.shareUri(file), format.mimeType)
+    }
+
+    private fun runExport(block: suspend (ReportData) -> ExportEvent) {
+        val report = currentReport() ?: return
+        if (exportingState.value) return
+        exportingState.value = true
+        viewModelScope.launch {
+            val event = try {
+                block(report)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                ExportEvent.Failed(failure.message ?: failure.javaClass.simpleName)
+            } finally {
+                exportingState.value = false
+            }
+            exportEventsChannel.send(event)
+        }
+    }
+
+    private fun currentReport(): ReportData? = (state.value as? ReportsUiState.Ready)?.view?.report
 
     private fun toggle(key: String, id: String) {
         val current = savedStateHandle.get<ArrayList<String>>(key).orEmpty()

@@ -34,7 +34,7 @@ Contrato extensível de exportação (§8) com CSV pt-PT seguro (§9) e JSON ver
 | Create | `feature/reports/ExportReportSheet.kt` | Formato, granularidade, nome, «Guardar em…» (`ACTION_CREATE_DOCUMENT`) e «Partilhar» (`ACTION_SEND`) |
 | Modify | `AndroidManifest.xml`, `res/xml/file_paths.xml` | `FileProvider` em `cache/exports` |
 
-- [ ] `CsvReportExporterTest`, `JsonReportExporterTest`, `ExportCoordinatorTest` verdes
+- [x] `CsvReportExporterTest`, `JsonReportExporterTest`, `ExportCoordinatorTest` verdes
 
 ## Impacted Files
 
