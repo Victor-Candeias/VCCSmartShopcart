@@ -1,5 +1,6 @@
 package pt.vcc.smartshopcart.feature.session
 
+import android.database.SQLException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,6 +58,7 @@ sealed interface PlannedSessionEvent {
     data class ItemRemoved(val item: ShoppingSessionItem) : PlannedSessionEvent
     data object SessionClosed : PlannedSessionEvent
     data object SessionNotActive : PlannedSessionEvent
+    data object StorageError : PlannedSessionEvent
 }
 
 @HiltViewModel
@@ -159,6 +161,8 @@ class PlannedSessionViewModel @Inject constructor(
                 block()
             } catch (_: SessionNotActiveException) {
                 _events.send(PlannedSessionEvent.SessionNotActive)
+            } catch (_: SQLException) {
+                _events.send(PlannedSessionEvent.StorageError)
             }
         }
     }

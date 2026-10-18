@@ -1,5 +1,6 @@
 package pt.vcc.smartshopcart.feature.calculator
 
+import android.database.SQLException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -50,6 +51,7 @@ sealed interface CalculatorEvent {
     data class ItemRemoved(val item: ShoppingSessionItem) : CalculatorEvent
     data object SessionClosed : CalculatorEvent
     data object SessionNotActive : CalculatorEvent
+    data object StorageError : CalculatorEvent
 }
 
 @HiltViewModel
@@ -129,6 +131,8 @@ class CalculatorViewModel @Inject constructor(
                 block()
             } catch (_: SessionNotActiveException) {
                 _events.send(CalculatorEvent.SessionNotActive)
+            } catch (_: SQLException) {
+                _events.send(CalculatorEvent.StorageError)
             }
         }
     }

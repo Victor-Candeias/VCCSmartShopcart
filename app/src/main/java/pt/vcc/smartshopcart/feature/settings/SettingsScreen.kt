@@ -2,17 +2,27 @@ package pt.vcc.smartshopcart.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,18 +48,30 @@ class SettingsViewModel @Inject constructor(
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { settingsRepository.setThemeMode(mode) }
     }
+
+    fun setBudgetWarningPercent(percent: Int) {
+        viewModelScope.launch { settingsRepository.setBudgetWarningPercent(percent) }
+    }
 }
 
+private val budgetWarningOptions = listOf(70, 80, 90, 100)
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onOpenAbout: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium)
-        Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val sectionModifier = Modifier.padding(horizontal = 16.dp)
+        Text(stringResource(R.string.nav_settings), style = MaterialTheme.typography.headlineMedium, modifier = sectionModifier)
+
+        Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.titleMedium, modifier = sectionModifier)
+        FlowRow(sectionModifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ThemeMode.entries.forEach { mode ->
                 FilterChip(
                     selected = settings.themeMode == mode,
@@ -68,5 +90,31 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 )
             }
         }
+
+        HorizontalDivider()
+        Text(stringResource(R.string.settings_budget_warning), style = MaterialTheme.typography.titleMedium, modifier = sectionModifier)
+        Text(stringResource(R.string.settings_budget_warning_text), style = MaterialTheme.typography.bodyMedium, modifier = sectionModifier)
+        FlowRow(sectionModifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            budgetWarningOptions.forEach { percent ->
+                FilterChip(
+                    selected = settings.budgetWarningPercent == percent,
+                    onClick = { viewModel.setBudgetWarningPercent(percent) },
+                    label = { Text(stringResource(R.string.settings_percent, percent)) },
+                )
+            }
+        }
+
+        HorizontalDivider()
+        Text(stringResource(R.string.settings_privacy), style = MaterialTheme.typography.titleMedium, modifier = sectionModifier)
+        Text(stringResource(R.string.settings_privacy_text), style = MaterialTheme.typography.bodyMedium, modifier = sectionModifier)
+
+        HorizontalDivider()
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.settings_about)) },
+            supportingContent = { Text(stringResource(R.string.settings_about_summary)) },
+            leadingContent = { Icon(Icons.Filled.Info, contentDescription = null) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            modifier = Modifier.clickable(onClick = onOpenAbout),
+        )
     }
 }

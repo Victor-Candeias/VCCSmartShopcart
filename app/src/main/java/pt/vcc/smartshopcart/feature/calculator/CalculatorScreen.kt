@@ -91,6 +91,9 @@ fun CalculatorScreen(
                 CalculatorEvent.SessionNotActive -> scope.launch {
                     snackbar.showSnackbar(context.getString(R.string.session_not_active))
                 }
+                CalculatorEvent.StorageError -> scope.launch {
+                    snackbar.showSnackbar(context.getString(R.string.error_storage))
+                }
             }
         }
     }

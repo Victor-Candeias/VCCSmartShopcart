@@ -1,5 +1,7 @@
 package pt.vcc.smartshopcart.data.repository
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import pt.vcc.smartshopcart.core.database.ShoppingDatabase
 import pt.vcc.smartshopcart.data.mapper.toDomain
 import pt.vcc.smartshopcart.data.mapper.toEntity
@@ -25,4 +27,9 @@ class RoomProductRepository @Inject constructor(
         val storeName = entry.storeId?.let { db.storeDao().getById(it)?.name }
         return ProductPrice(entry.priceCents, entry.unit, storeName, entry.observedAt, entry.source)
     }
+
+    override fun observePriceHistory(barcode: String): Flow<List<ProductPrice>> =
+        history.observeForBarcode(barcode).map { rows ->
+            rows.map { ProductPrice(it.price.priceCents, it.price.unit, it.storeName, it.price.observedAt, it.price.source) }
+        }
 }

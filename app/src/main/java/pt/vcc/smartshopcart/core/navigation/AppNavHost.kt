@@ -29,12 +29,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import pt.vcc.smartshopcart.R
 import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
+import pt.vcc.smartshopcart.feature.history.HistoryDetailScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
 import pt.vcc.smartshopcart.feature.product.ItemEditorScreen
 import pt.vcc.smartshopcart.feature.scanner.ScannerScreen
 import pt.vcc.smartshopcart.domain.model.SessionMode
 import pt.vcc.smartshopcart.feature.session.PlannedSessionScreen
+import pt.vcc.smartshopcart.feature.settings.AboutScreen
 import pt.vcc.smartshopcart.feature.settings.SettingsScreen
 import pt.vcc.smartshopcart.feature.shoppinglist.ListDetailScreen
 import pt.vcc.smartshopcart.feature.shoppinglist.ShoppingListsScreen
@@ -108,8 +110,12 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onOpenSession = navController::navigateToSession,
                 )
             }
-            composable<HistoryRoute> { HistoryScreen() }
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<HistoryRoute> {
+                HistoryScreen(onOpenPurchase = { sessionId -> navController.navigate(HistoryDetailRoute(sessionId)) })
+            }
+            composable<HistoryDetailRoute> { HistoryDetailScreen(onBack = { navController.popBackStack() }) }
+            composable<SettingsRoute> { SettingsScreen(onOpenAbout = { navController.navigate(AboutRoute) }) }
+            composable<AboutRoute> { AboutScreen(onBack = { navController.popBackStack() }) }
             composable<CalculatorRoute> {
                 CalculatorScreen(
                     onBack = { navController.popBackStack() },

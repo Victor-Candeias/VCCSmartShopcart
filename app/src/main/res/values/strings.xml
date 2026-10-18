@@ -151,14 +151,53 @@
     <string name="scanner_kind_per_kg">por kg</string>
     <string name="scanner_kind_per_l">por L</string>
     <string name="scanner_kind_discount">desconto</string>
-    <string name="scanner_kind_unknown">valor</string>    <string name="planned_scan_item">Ler código de barras de %1$s</string>
+    <string name="scanner_kind_unknown">valor</string>
+    <string name="planned_scan_item">Ler código de barras de %1$s</string>
+
+    <!-- Erros -->
+    <string name="error_storage">Não foi possível gravar. Verifique o espaço livre no dispositivo e tente novamente.</string>
 
     <!-- Histórico -->
     <string name="history_empty">Ainda não há compras concluídas.</string>
+    <string name="history_no_store">Sem supermercado</string>
+    <string name="history_list_name">Lista: %1$s</string>
+    <string name="history_detail_title">Compra concluída</string>
+    <string name="history_completed_at">Concluída em %1$s</string>
+    <string name="history_read_only">Compras concluídas não podem ser alteradas.</string>
+    <string name="history_delete">Eliminar compra</string>
+    <string name="history_delete_title">Eliminar compra?</string>
+    <string name="history_delete_text">A compra e os seus artigos são removidos do histórico. Os preços observados continuam disponíveis para sugestões.</string>
+    <string name="history_delete_failed">Não foi possível eliminar a compra.</string>
+    <string name="history_price_hint">Toque num artigo com código de barras para ver os preços por supermercado.</string>
+    <string name="history_price_action">ver preços por supermercado</string>
+    <string name="history_price_title">Preços de %1$s</string>
+    <string name="history_price_empty">Ainda não há preços registados para este produto.</string>
+    <string name="history_price_last">Último: %1$s em %2$s</string>
+    <string name="history_price_range">Mínimo %1$s · máximo %2$s</string>
+    <plurals name="history_price_count">
+        <item quantity="one">%d registo</item>
+        <item quantity="other">%d registos</item>
+    </plurals>
 
     <!-- Definições -->
     <string name="settings_theme">Tema</string>
     <string name="settings_theme_system">Sistema</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Escuro</string>
+    <string name="settings_budget_warning">Alerta de orçamento</string>
+    <string name="settings_budget_warning_text">Avisar quando o total atingir esta percentagem do orçamento.</string>
+    <string name="settings_percent">%1$d%%</string>
+    <string name="settings_privacy">Privacidade</string>
+    <string name="settings_privacy_text">Listas, compras e preços ficam apenas neste dispositivo. As fotografias são analisadas no momento e não são guardadas. Para identificar um produto só é enviado o código de barras ao Open Food Facts, sem dados pessoais.</string>
+    <string name="settings_about">Sobre</string>
+    <string name="settings_about_summary">Versão, atribuição Open Food Facts e licenças</string>
+
+    <!-- Sobre -->
+    <string name="about_version">Versão %1$s</string>
+    <string name="about_description">Calculadora e lista de compras com leitura de código de barras e de preços, a funcionar offline.</string>
+    <string name="about_off_title">Dados de produtos</string>
+    <string name="about_off_text">Os nomes, marcas e quantidades dos produtos vêm do Open Food Facts (openfoodfacts.org), uma base de dados colaborativa disponibilizada sob a Open Database License (ODbL). Os conteúdos individuais estão sob a Database Contents License.</string>
+    <string name="about_off_open">Abrir openfoodfacts.org</string>
+    <string name="about_licenses_title">Licenças de código aberto</string>
+    <string name="about_licenses_text">Kotlin, kotlinx.coroutines e kotlinx.serialization, AndroidX e Jetpack Compose, Room, DataStore, CameraX, Hilt/Dagger, Retrofit e OkHttp são distribuídos sob a Apache License 2.0. O reconhecimento de códigos e de texto usa o Google ML Kit, sujeito aos termos do ML Kit.</string>
 </resources>

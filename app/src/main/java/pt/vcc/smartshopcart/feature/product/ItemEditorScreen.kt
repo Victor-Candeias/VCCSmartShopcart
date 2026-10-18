@@ -63,6 +63,7 @@ fun ItemEditorScreen(
             when (event) {
                 ItemEditorEvent.Done -> onBack()
                 ItemEditorEvent.SessionNotActive -> snackbar.showSnackbar(context.getString(R.string.session_not_active))
+                ItemEditorEvent.StorageError -> snackbar.showSnackbar(context.getString(R.string.error_storage))
             }
         }
     }

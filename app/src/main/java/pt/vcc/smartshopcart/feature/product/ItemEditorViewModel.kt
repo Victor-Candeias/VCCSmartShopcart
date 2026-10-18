@@ -1,5 +1,6 @@
 package pt.vcc.smartshopcart.feature.product
 
+import android.database.SQLException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -71,6 +72,7 @@ data class ItemEditorUiState(
 sealed interface ItemEditorEvent {
     data object Done : ItemEditorEvent
     data object SessionNotActive : ItemEditorEvent
+    data object StorageError : ItemEditorEvent
 }
 
 @HiltViewModel
@@ -139,6 +141,8 @@ class ItemEditorViewModel @Inject constructor(
                 block()
             } catch (_: SessionNotActiveException) {
                 _events.send(ItemEditorEvent.SessionNotActive)
+            } catch (_: SQLException) {
+                _events.send(ItemEditorEvent.StorageError)
             }
         }
     }

@@ -108,6 +108,7 @@ fun ScannerScreen(
             when (event) {
                 ScannerEvent.Added -> onAdded()
                 ScannerEvent.SessionNotActive -> snackbar.showSnackbar(context.getString(R.string.session_not_active))
+                ScannerEvent.StorageError -> snackbar.showSnackbar(context.getString(R.string.error_storage))
             }
         }
     }

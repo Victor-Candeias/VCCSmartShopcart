@@ -6,7 +6,10 @@ title: "Histórico, definições, acessibilidade e APK assinado"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+completed: 2026-10-18
+status: done
+specs:
+  - sc-06-history-stabilization-spec
 track: vcc-smartshopcart-mvp
 blocked-by:
   - sc-03-lists

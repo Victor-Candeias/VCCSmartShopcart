@@ -1,5 +1,6 @@
 package pt.vcc.smartshopcart.feature.scanner
 
+import android.database.SQLException
 import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -50,6 +51,7 @@ data class ScannerUiState(
 sealed interface ScannerEvent {
     data object Added : ScannerEvent
     data object SessionNotActive : ScannerEvent
+    data object StorageError : ScannerEvent
 }
 
 @HiltViewModel
@@ -207,6 +209,10 @@ class ScannerViewModel @Inject constructor(
             } catch (_: SessionNotActiveException) {
                 _state.update { it.copy(saving = false, inactive = true) }
                 _events.send(ScannerEvent.SessionNotActive)
+            } catch (_: SQLException) {
+                // O rascunho mantém-se para o utilizador poder tentar de novo.
+                _state.update { it.copy(saving = false) }
+                _events.send(ScannerEvent.StorageError)
             }
         }
     }

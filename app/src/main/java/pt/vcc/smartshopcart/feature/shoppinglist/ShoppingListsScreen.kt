@@ -28,6 +28,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -53,10 +55,13 @@ fun ShoppingListsScreen(
     Scaffold(
         floatingActionButton = {
             if (!showArchived) {
+                val label = stringResource(R.string.list_new)
                 ExtendedFloatingActionButton(
                     onClick = { showCreate = true },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.list_new)) },
+                    text = { Text(label) },
+                    // O texto animado do FAB não é exposto à acessibilidade; o rótulo garante a leitura no TalkBack.
+                    modifier = Modifier.semantics { contentDescription = label },
                 )
             }
         },

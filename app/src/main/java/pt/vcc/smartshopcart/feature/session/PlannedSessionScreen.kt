@@ -45,6 +45,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -97,6 +99,9 @@ fun PlannedSessionScreen(
                 PlannedSessionEvent.SessionNotActive -> scope.launch {
                     snackbar.showSnackbar(context.getString(R.string.session_not_active))
                 }
+                PlannedSessionEvent.StorageError -> scope.launch {
+                    snackbar.showSnackbar(context.getString(R.string.error_storage))
+                }
             }
         }
     }
@@ -139,10 +144,13 @@ fun PlannedSessionScreen(
         },
         floatingActionButton = {
             if (state.isActive) {
+                val label = stringResource(R.string.planned_add_extra)
                 ExtendedFloatingActionButton(
                     onClick = { addingExtra = true },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text(stringResource(R.string.planned_add_extra)) },
+                    text = { Text(label) },
+                    // O texto animado do FAB não é exposto à acessibilidade; o rótulo garante a leitura no TalkBack.
+                    modifier = Modifier.semantics { contentDescription = label },
                 )
             }
         },
