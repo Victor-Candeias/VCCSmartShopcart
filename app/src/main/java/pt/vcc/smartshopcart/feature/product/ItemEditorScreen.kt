@@ -21,9 +21,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -47,6 +44,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pt.vcc.smartshopcart.R
 import pt.vcc.smartshopcart.core.money.MoneyFormatter
+import pt.vcc.smartshopcart.core.ui.components.UnitSelector
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,16 +133,7 @@ private fun ItemFormContent(state: ItemEditorUiState, viewModel: ItemEditorViewM
             modifier = Modifier.fillMaxWidth(),
         )
         Text(stringResource(R.string.item_unit), style = MaterialTheme.typography.labelLarge)
-        val units = MeasureUnit.entries
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            units.forEachIndexed { index, unit ->
-                SegmentedButton(
-                    selected = form.unit == unit,
-                    onClick = { viewModel.onFormChange { it.copy(unit = unit) } },
-                    shape = SegmentedButtonDefaults.itemShape(index, units.size),
-                ) { Text(unit.symbol) }
-            }
-        }
+        UnitSelector(form.unit, { unit -> viewModel.onFormChange { it.copy(unit = unit) } })
         OutlinedTextField(
             value = form.price,
             onValueChange = { v -> viewModel.onFormChange { it.copy(price = v) } },

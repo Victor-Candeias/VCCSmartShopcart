@@ -18,7 +18,7 @@ status: active
 |---|---|---|---|---|---|---|---|---|---|
 | sc-01-foundation | Fundação: projeto Android, Hilt, Room, navegação e domínio monetário | done | 2026-10-18 | developer | critical | 2026-10-18 |  |  | [sc-01-foundation](../specs/vcc-smartshopcart-mvp/sc-01-foundation-spec.md) |
 | sc-02-calculator | Calculadora rápida: sessões, teclado, linhas, totais e orçamento | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-01-foundation | [sc-02-calculator](../specs/vcc-smartshopcart-mvp/sc-02-calculator-spec.md) |
-| sc-03-lists | Listas planeadas: CRUD, itens e sessão ligada à lista | backlog | 2026-10-18 | developer | high |  |  | sc-02-calculator |  |
+| sc-03-lists | Listas planeadas: CRUD, itens e sessão ligada à lista | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-02-calculator | [sc-03-lists](../specs/vcc-smartshopcart-mvp/sc-03-lists-spec.md) |
 | sc-04-barcode-catalog | Scanner de código de barras e catálogo Open Food Facts | backlog | 2026-10-18 | developer | high |  |  | sc-01-foundation |  |
 | sc-05-ocr-capture | OCR de preços, parser e captura combinada com confirmação | backlog | 2026-10-18 | developer | critical |  |  | sc-04-barcode-catalog |  |
 | sc-06-history-stabilization | Histórico, definições, acessibilidade e APK assinado | backlog | 2026-10-18 | developer | high |  |  | sc-03-lists, sc-05-ocr-capture |  |

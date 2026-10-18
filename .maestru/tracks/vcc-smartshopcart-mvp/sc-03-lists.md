@@ -6,8 +6,11 @@ title: "Listas planeadas: CRUD, itens e sessão ligada à lista"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 track: vcc-smartshopcart-mvp
+specs:
+  - sc-03-lists-spec
 blocked-by:
   - sc-02-calculator
 ---

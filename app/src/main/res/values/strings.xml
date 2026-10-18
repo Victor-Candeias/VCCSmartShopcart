@@ -17,6 +17,7 @@
     <string name="action_more">Mais opções</string>
     <string name="action_undo">Desfazer</string>
     <string name="action_save">Guardar</string>
+    <string name="action_add">Adicionar</string>
     <string name="action_add_price">Adicionar preço</string>
     <string name="action_remove_item">Remover artigo</string>
     <string name="error_invalid_amount">Valor inválido (ex.: 1,49)</string>
@@ -66,7 +67,48 @@
     <string name="home_lists_hint">Criar uma lista e fazer compras com ela</string>
 
     <!-- Listas -->
-    <string name="lists_empty">Ainda não há listas.</string>
+    <string name="lists_empty">Ainda não há listas. Toque em «Nova lista» para criar a primeira.</string>
+    <string name="lists_active">Ativas</string>
+    <string name="lists_archived">Arquivadas</string>
+    <string name="lists_archived_empty">Não há listas arquivadas.</string>
+    <plurals name="items_count">
+        <item quantity="one">%d artigo</item>
+        <item quantity="other">%d artigos</item>
+    </plurals>
+    <string name="list_new">Nova lista</string>
+    <string name="list_name">Nome da lista</string>
+    <string name="list_budget_value">Orçamento: %1$s</string>
+    <string name="list_edit">Editar lista</string>
+    <string name="list_duplicate">Duplicar</string>
+    <string name="list_copy_name">%1$s (cópia)</string>
+    <string name="list_archive">Arquivar</string>
+    <string name="list_unarchive">Desarquivar</string>
+    <string name="list_delete">Eliminar lista</string>
+    <string name="list_delete_title">Eliminar lista?</string>
+    <string name="list_delete_text">A lista e os seus artigos são eliminados. As compras já feitas continuam no histórico.</string>
+    <string name="list_is_archived">Lista arquivada — desarquive para iniciar uma compra.</string>
+    <string name="list_missing">Lista não encontrada.</string>
+    <string name="list_estimated_total">Total estimado: %1$s</string>
+    <string name="list_items_without_estimate">%1$d artigo(s) sem preço estimado</string>
+    <string name="list_items_empty">A lista está vazia. Adicione artigos para planear a compra.</string>
+    <string name="list_item_add">Adicionar artigo</string>
+    <string name="list_item_edit">Editar artigo</string>
+    <string name="list_item_delete">Eliminar %1$s</string>
+    <string name="list_item_name">Nome do artigo</string>
+    <string name="list_item_estimate">Preço estimado (opcional)</string>
+    <string name="list_item_estimate_per">Preço estimado por %1$s (opcional)</string>
+    <string name="list_start_shopping">Iniciar compra</string>
+
+    <!-- Compra planeada -->
+    <string name="planned_progress">%1$d de %2$d artigos tratados</string>
+    <string name="planned_section_pending">Por comprar (%1$d)</string>
+    <string name="planned_section_in_cart">No carrinho (%1$d)</string>
+    <string name="planned_section_extras">Extras (%1$d)</string>
+    <string name="planned_section_skipped">Ignorados (%1$d)</string>
+    <string name="planned_skip">Ignorar</string>
+    <string name="planned_restore">Repor</string>
+    <string name="planned_add_extra">Extra</string>
+    <string name="planned_complete_pending">Ainda há %1$d artigo(s) por comprar.</string>
 
     <!-- Histórico -->
     <string name="history_empty">Ainda não há compras concluídas.</string>

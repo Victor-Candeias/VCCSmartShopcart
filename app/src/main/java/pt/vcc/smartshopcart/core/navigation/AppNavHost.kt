@@ -32,7 +32,10 @@ import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
 import pt.vcc.smartshopcart.feature.product.ItemEditorScreen
+import pt.vcc.smartshopcart.domain.model.SessionMode
+import pt.vcc.smartshopcart.feature.session.PlannedSessionScreen
 import pt.vcc.smartshopcart.feature.settings.SettingsScreen
+import pt.vcc.smartshopcart.feature.shoppinglist.ListDetailScreen
 import pt.vcc.smartshopcart.feature.shoppinglist.ShoppingListsScreen
 import kotlin.reflect.KClass
 
@@ -86,22 +89,57 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         ) {
             composable<HomeRoute> {
                 HomeScreen(
-                    onOpenSession = { sessionId, _ -> navController.navigate(CalculatorRoute(sessionId)) },
+                    onOpenSession = navController::navigateToSession,
                     onOpenLists = { navController.navigateTopLevel(ListsRoute) },
                 )
             }
-            composable<ListsRoute> { ShoppingListsScreen() }
+            composable<ListsRoute> {
+                ShoppingListsScreen(onOpenList = { listId -> navController.navigate(ListDetailRoute(listId)) })
+            }
+            composable<ListDetailRoute> {
+                ListDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenList = { listId ->
+                        navController.navigate(ListDetailRoute(listId)) {
+                            popUpTo<ListDetailRoute> { inclusive = true }
+                        }
+                    },
+                    onOpenSession = navController::navigateToSession,
+                )
+            }
             composable<HistoryRoute> { HistoryScreen() }
             composable<SettingsRoute> { SettingsScreen() }
             composable<CalculatorRoute> {
                 CalculatorScreen(
                     onBack = { navController.popBackStack() },
                     onEditItem = { itemId -> navController.navigate(ItemEditRoute(itemId)) },
-                    onSessionClosed = { navController.popBackStack(HomeRoute, inclusive = false) },
+                    onSessionClosed = navController::closeSession,
+                )
+            }
+            composable<PlannedSessionRoute> {
+                PlannedSessionScreen(
+                    onBack = { navController.popBackStack() },
+                    onEditItem = { itemId -> navController.navigate(ItemEditRoute(itemId)) },
+                    onSessionClosed = navController::closeSession,
                 )
             }
             composable<ItemEditRoute> { ItemEditorScreen(onBack = { navController.popBackStack() }) }
         }
+    }
+}
+
+private fun NavHostController.navigateToSession(sessionId: String, mode: SessionMode) {
+    when (mode) {
+        SessionMode.CALCULATOR -> navigate(CalculatorRoute(sessionId))
+        SessionMode.PLANNED -> navigate(PlannedSessionRoute(sessionId))
+    }
+}
+
+/** Após concluir/cancelar volta ao Início, removendo a sessão (e a lista de origem) da pilha. */
+private fun NavHostController.closeSession() {
+    navigate(HomeRoute) {
+        popUpTo(graph.findStartDestination().id) { inclusive = false }
+        launchSingleTop = true
     }
 }
 
