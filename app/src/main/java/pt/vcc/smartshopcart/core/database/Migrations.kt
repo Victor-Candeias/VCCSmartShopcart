@@ -28,4 +28,48 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
-val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2)
+/**
+ * v2 → v3: tabelas do modo Despesas Rápidas (catálogo, estabelecimentos, despesas e itens).
+ * Não altera dados existentes; o catálogo predefinido é importado depois pelo seeder.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        listOf(
+            """
+            CREATE TABLE IF NOT EXISTS `expense_categories` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `icon` TEXT,
+            `sortOrder` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, PRIMARY KEY(`id`))
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS `expense_products` (`id` TEXT NOT NULL, `categoryId` TEXT NOT NULL,
+            `name` TEXT NOT NULL, `icon` TEXT, `defaultPriceCents` INTEGER, `isFavorite` INTEGER NOT NULL,
+            `isActive` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL, PRIMARY KEY(`id`),
+            FOREIGN KEY(`categoryId`) REFERENCES `expense_categories`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )
+            """,
+            "CREATE INDEX IF NOT EXISTS `index_expense_products_categoryId_sortOrder` ON `expense_products` (`categoryId`, `sortOrder`)",
+            """
+            CREATE TABLE IF NOT EXISTS `establishments` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `type` TEXT,
+            `isFavorite` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))
+            """,
+            "CREATE INDEX IF NOT EXISTS `index_establishments_name` ON `establishments` (`name`)",
+            """
+            CREATE TABLE IF NOT EXISTS `expenses` (`id` TEXT NOT NULL, `establishmentId` TEXT,
+            `occurredAt` INTEGER NOT NULL, `totalCents` INTEGER NOT NULL, `notes` TEXT, `createdAt` INTEGER NOT NULL,
+            `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`),
+            FOREIGN KEY(`establishmentId`) REFERENCES `establishments`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )
+            """,
+            "CREATE INDEX IF NOT EXISTS `index_expenses_occurredAt` ON `expenses` (`occurredAt`)",
+            "CREATE INDEX IF NOT EXISTS `index_expenses_establishmentId` ON `expenses` (`establishmentId`)",
+            """
+            CREATE TABLE IF NOT EXISTS `expense_items` (`id` TEXT NOT NULL, `expenseId` TEXT NOT NULL, `productId` TEXT,
+            `nameSnapshot` TEXT NOT NULL, `quantity` INTEGER NOT NULL, `unitPriceCents` INTEGER NOT NULL,
+            `totalCents` INTEGER NOT NULL, `position` INTEGER NOT NULL, PRIMARY KEY(`id`),
+            FOREIGN KEY(`expenseId`) REFERENCES `expenses`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE ,
+            FOREIGN KEY(`productId`) REFERENCES `expense_products`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )
+            """,
+            "CREATE INDEX IF NOT EXISTS `index_expense_items_expenseId` ON `expense_items` (`expenseId`)",
+            "CREATE INDEX IF NOT EXISTS `index_expense_items_productId` ON `expense_items` (`productId`)",
+        ).forEach { db.execSQL(it.trimIndent()) }
+    }
+}
+
+val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)

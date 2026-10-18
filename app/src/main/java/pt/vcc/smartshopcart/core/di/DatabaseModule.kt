@@ -40,6 +40,7 @@ object DatabaseModule {
     @Provides fun priceHistoryDao(db: ShoppingDatabase) = db.priceHistoryDao()
     @Provides fun priceCaptureDao(db: ShoppingDatabase) = db.priceCaptureDao()
     @Provides fun externalPriceDao(db: ShoppingDatabase) = db.externalPriceDao()
+    @Provides fun expenseDao(db: ShoppingDatabase) = db.expenseDao()
 
     @Provides
     @IoDispatcher

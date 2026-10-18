@@ -6,7 +6,8 @@ title: "Despesas: modelo de domínio, entidades Room, DAO e migração 2→3"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - dr-01-room-model-spec
 track: vcc-despesas-rapidas

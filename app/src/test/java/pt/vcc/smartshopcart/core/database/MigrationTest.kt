@@ -8,6 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -20,11 +21,14 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import pt.vcc.smartshopcart.core.database.entity.ExpenseCategoryEntity
+import pt.vcc.smartshopcart.core.database.entity.ExpenseEntity
+import pt.vcc.smartshopcart.core.database.entity.ExpenseItemEntity
 import java.io.File
 
 /**
- * Cria a base de dados v1 a partir do esquema exportado (`schemas/.../1.json`), aplica
- * [MIGRATION_1_2] e deixa o Room validar o esquema v2 ao abrir (falha se divergir).
+ * Cria a base de dados numa versão antiga a partir do esquema exportado (`schemas/.../N.json`),
+ * aplica as migrações e deixa o Room validar o esquema atual ao abrir (falha se divergir).
  */
 @RunWith(RobolectricTestRunner::class)
 class MigrationTest {
@@ -38,8 +42,8 @@ class MigrationTest {
     }
 
     @Test
-    fun `migracao 1 para 2 preserva dados e cria tabelas Open Prices`() = runTest {
-        createVersion1 { db ->
+    fun `migracao 1 para 3 preserva dados e cria tabelas Open Prices e de despesas`() = runTest {
+        createVersion(1) { db ->
             db.insert(
                 "products",
                 SQLiteDatabase.CONFLICT_FAIL,
@@ -60,14 +64,48 @@ class MigrationTest {
         try {
             assertEquals("Leite", db.productDao().findByBarcode("0001234567890")?.name)
             assertTrue(db.externalPriceDao().getPrices("0001234567890").isEmpty())
-            assertEquals(2, db.openHelper.readableDatabase.version)
+            assertTrue(db.expenseDao().observeSummaries().first().isEmpty())
+            assertEquals(3, db.openHelper.readableDatabase.version)
         } finally {
             db.close()
         }
     }
 
-    private fun createVersion1(seed: (SupportSQLiteDatabase) -> Unit) {
-        val schema = Json.parseToJsonElement(schemaFile(1).readText()).jsonObject.getValue("database").jsonObject
+    @Test
+    fun `migracao 2 para 3 preserva precos externos e permite gravar despesas`() = runTest {
+        createVersion(2) { db ->
+            db.insert(
+                "external_price_sync",
+                SQLiteDatabase.CONFLICT_FAIL,
+                ContentValues().apply {
+                    put("barcode", "5601234567890")
+                    put("lastAttemptAt", 5L)
+                    put("status", "EMPTY")
+                    put("totalAvailable", 0)
+                    put("incomplete", 0)
+                },
+            )
+        }
+
+        val db = Room.databaseBuilder(context, ShoppingDatabase::class.java, DB_NAME)
+            .addMigrations(*ALL_MIGRATIONS)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            assertEquals(5L, db.externalPriceDao().getSync("5601234567890")?.lastAttemptAt)
+            val dao = db.expenseDao()
+            dao.insertCategoriesIgnoringExisting(listOf(ExpenseCategoryEntity("c", "Café", null, 0, true)))
+            dao.upsertExpense(ExpenseEntity("e", null, 10, 85, null, 10, 10))
+            dao.insertItems(listOf(ExpenseItemEntity("i", "e", null, "Café", 1, 85, 85, 0)))
+            assertEquals(85L, dao.sumItems("e"))
+            assertEquals(3, db.openHelper.readableDatabase.version)
+        } finally {
+            db.close()
+        }
+    }
+
+    private fun createVersion(version: Int, seed: (SupportSQLiteDatabase) -> Unit) {
+        val schema = Json.parseToJsonElement(schemaFile(version).readText()).jsonObject.getValue("database").jsonObject
         val statements = schema.getValue("entities").jsonArray.flatMap { entity ->
             val obj = entity.jsonObject
             val table = obj.getValue("tableName").jsonPrimitive.content
@@ -80,7 +118,7 @@ class MigrationTest {
             SupportSQLiteOpenHelper.Configuration.builder(context)
                 .name(DB_NAME)
                 .callback(
-                    object : SupportSQLiteOpenHelper.Callback(1) {
+                    object : SupportSQLiteOpenHelper.Callback(version) {
                         override fun onCreate(db: SupportSQLiteDatabase) = statements.forEach(db::execSQL)
                         override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
                     },

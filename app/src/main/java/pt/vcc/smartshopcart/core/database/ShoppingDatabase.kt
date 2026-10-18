@@ -2,6 +2,7 @@ package pt.vcc.smartshopcart.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import pt.vcc.smartshopcart.core.database.dao.ExpenseDao
 import pt.vcc.smartshopcart.core.database.dao.ExternalPriceDao
 import pt.vcc.smartshopcart.core.database.dao.PriceCaptureDao
 import pt.vcc.smartshopcart.core.database.dao.PriceHistoryDao
@@ -9,6 +10,11 @@ import pt.vcc.smartshopcart.core.database.dao.ProductDao
 import pt.vcc.smartshopcart.core.database.dao.ShoppingListDao
 import pt.vcc.smartshopcart.core.database.dao.ShoppingSessionDao
 import pt.vcc.smartshopcart.core.database.dao.StoreDao
+import pt.vcc.smartshopcart.core.database.entity.EstablishmentEntity
+import pt.vcc.smartshopcart.core.database.entity.ExpenseCategoryEntity
+import pt.vcc.smartshopcart.core.database.entity.ExpenseEntity
+import pt.vcc.smartshopcart.core.database.entity.ExpenseItemEntity
+import pt.vcc.smartshopcart.core.database.entity.ExpenseProductEntity
 import pt.vcc.smartshopcart.core.database.entity.ExternalPriceEntity
 import pt.vcc.smartshopcart.core.database.entity.ExternalPriceSyncEntity
 import pt.vcc.smartshopcart.core.database.entity.PriceCaptureEntity
@@ -34,8 +40,13 @@ import pt.vcc.smartshopcart.core.database.entity.StoreEntity
         SessionPlannedItemStateEntity::class,
         ExternalPriceEntity::class,
         ExternalPriceSyncEntity::class,
+        ExpenseCategoryEntity::class,
+        ExpenseProductEntity::class,
+        EstablishmentEntity::class,
+        ExpenseEntity::class,
+        ExpenseItemEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class ShoppingDatabase : RoomDatabase() {
@@ -46,6 +57,7 @@ abstract class ShoppingDatabase : RoomDatabase() {
     abstract fun priceHistoryDao(): PriceHistoryDao
     abstract fun priceCaptureDao(): PriceCaptureDao
     abstract fun externalPriceDao(): ExternalPriceDao
+    abstract fun expenseDao(): ExpenseDao
 
     companion object {
         const val NAME = "vccsmartshopcart.db"
