@@ -82,6 +82,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pt.vcc.smartshopcart.R
+import pt.vcc.smartshopcart.core.barcode.Barcodes
 import pt.vcc.smartshopcart.core.money.MoneyFormatter
 import pt.vcc.smartshopcart.core.money.MoneyParser
 import pt.vcc.smartshopcart.core.ui.components.AmountField
@@ -91,6 +92,7 @@ import pt.vcc.smartshopcart.core.ui.components.UnitSelector
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
 import pt.vcc.smartshopcart.domain.model.PriceKind
 import pt.vcc.smartshopcart.domain.usecase.ProductLookupStatus
+import pt.vcc.smartshopcart.feature.prices.ProductPricesSheet
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -475,6 +477,7 @@ private fun ManualPriceDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit
 @Composable
 private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, modifier: Modifier = Modifier) {
     val draft = state.draft ?: return
+    var showReferencePrices by rememberSaveable(draft.barcode) { mutableStateOf(false) }
     Column(
         modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -550,6 +553,31 @@ private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, m
                 } ?: stringResource(R.string.scanner_last_price, MoneyFormatter.format(cents)),
                 style = MaterialTheme.typography.bodySmall,
             )
+        }
+        if (draft.priceFromReference) {
+            Text(
+                stringResource(R.string.scanner_reference_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        }
+        val barcode = draft.barcode
+        if (barcode != null && !Barcodes.isInternalStoreCode(barcode)) {
+            OutlinedButton(
+                onClick = { showReferencePrices = true },
+                enabled = !state.saving,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+            ) { Text(stringResource(R.string.scanner_reference_prices)) }
+            if (showReferencePrices) {
+                ProductPricesSheet(
+                    barcode = barcode,
+                    onDismiss = { showReferencePrices = false },
+                    onUsePrice = { price ->
+                        showReferencePrices = false
+                        viewModel.onUseReferencePrice(price)
+                    },
+                )
+            }
         }
         QuantityField(draft.quantity, { v -> viewModel.onDraftChange { it.copy(quantity = v) } }, draft.unit, draft.quantityValue == null)
         Text(

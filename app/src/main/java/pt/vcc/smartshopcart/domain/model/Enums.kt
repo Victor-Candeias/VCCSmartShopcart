@@ -6,7 +6,8 @@ enum class SessionMode { CALCULATOR, PLANNED }
 
 enum class SessionStatus { ACTIVE, COMPLETED, CANCELLED }
 
-enum class PriceSource { MANUAL, OCR, HISTORY }
+/** `OPEN_PRICES`: preço de referência comunitário confirmado sem alteração pelo utilizador (OP14). */
+enum class PriceSource { MANUAL, OCR, HISTORY, OPEN_PRICES }
 
 enum class ProductSource { MANUAL, OPEN_FOOD_FACTS }
 

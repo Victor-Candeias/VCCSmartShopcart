@@ -6,8 +6,10 @@ import pt.vcc.smartshopcart.core.money.MoneyParser
 import pt.vcc.smartshopcart.core.money.QuantityParser
 import pt.vcc.smartshopcart.core.ocr.PriceParseResult
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
+import pt.vcc.smartshopcart.domain.model.PriceBasis
 import pt.vcc.smartshopcart.domain.model.PriceCandidate
 import pt.vcc.smartshopcart.domain.model.PriceKind
+import pt.vcc.smartshopcart.domain.model.ReferencePrice
 import pt.vcc.smartshopcart.domain.model.ShoppingListItem
 import pt.vcc.smartshopcart.domain.usecase.ProductLookupStatus
 import pt.vcc.smartshopcart.domain.usecase.ResolveProductResult
@@ -31,6 +33,8 @@ data class ScanDraft(
     /** Último preço no mesmo supermercado (D17). */
     val suggestedPriceCents: Long? = null,
     val suggestedStoreName: String? = null,
+    /** Preço Open Prices escolhido com "Usar como referência" (OP14); só conta se o utilizador o confirmar. */
+    val referencePriceCents: Long? = null,
     val priceCandidates: List<PriceCandidate> = emptyList(),
     val selectedCandidate: Int? = null,
     val ocrRawText: String? = null,
@@ -43,6 +47,9 @@ data class ScanDraft(
 
     /** O preço no campo é o que o OCR leu (ainda por confirmar pelo utilizador). */
     val priceFromOcr: Boolean get() = ocrPriceCents != null && ocrPriceCents == priceCents
+
+    /** O preço no campo é o de referência Open Prices escolhido (ainda por confirmar pelo utilizador). */
+    val priceFromReference: Boolean get() = referencePriceCents != null && referencePriceCents == priceCents
 
     val totalCents: Long?
         get() {
@@ -120,4 +127,21 @@ object CaptureDraftReducer {
     /** Preço escrito à mão no lugar da fotografia; os candidatos do OCR ficam disponíveis mas não selecionados. */
     fun withManualPrice(draft: ScanDraft?, cents: Long, listItem: ShoppingListItem?): ScanDraft =
         (draft ?: start(listItem)).copy(price = MoneyFormatter.formatPlain(cents), selectedCandidate = null)
+
+    /**
+     * "Usar como referência" (OP14): só preenche o preço, que o utilizador tem de confirmar com "Adicionar".
+     * Preços por kg passam a unidade para kg e preços por embalagem para unidades (OP7).
+     */
+    fun withReferencePrice(draft: ScanDraft, price: ReferencePrice): ScanDraft {
+        val unit = when (price.basis) {
+            PriceBasis.KILOGRAM -> if (draft.unit.priceUnit == MeasureUnit.KG) draft.unit else MeasureUnit.KG
+            PriceBasis.UNIT -> if (draft.unit.priceUnit == MeasureUnit.UN) draft.unit else MeasureUnit.UN
+        }
+        return draft.copy(
+            price = MoneyFormatter.formatPlain(price.priceCents),
+            unit = unit,
+            selectedCandidate = null,
+            referencePriceCents = price.priceCents,
+        )
+    }
 }

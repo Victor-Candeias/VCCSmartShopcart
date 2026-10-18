@@ -20,6 +20,7 @@ import pt.vcc.smartshopcart.core.navigation.ScannerRoute
 import pt.vcc.smartshopcart.core.ocr.OcrLine
 import pt.vcc.smartshopcart.core.ocr.PriceCandidateParser
 import pt.vcc.smartshopcart.core.ocr.ProductNameExtractor
+import pt.vcc.smartshopcart.domain.model.ReferencePrice
 import pt.vcc.smartshopcart.domain.model.SessionStatus
 import pt.vcc.smartshopcart.domain.model.ShoppingListItem
 import pt.vcc.smartshopcart.domain.repository.ShoppingListRepository
@@ -194,6 +195,9 @@ class ScannerViewModel @Inject constructor(
 
     fun onSelectCandidate(index: Int) = onDraftChange { CaptureDraftReducer.selectCandidate(it, index) }
 
+    /** "Usar como referência" na folha de preços em Portugal: só preenche o preço (OP14). */
+    fun onUseReferencePrice(price: ReferencePrice) = onDraftChange { CaptureDraftReducer.withReferencePrice(it, price) }
+
     /** Volta à câmara mantendo o rascunho, para ler o código de barras em falta. */
     fun onCaptureCode() = startCapture(CaptureTarget.PRODUCT)
 
@@ -254,6 +258,7 @@ class ScannerViewModel @Inject constructor(
                         unit = draft.unit,
                         unitPriceCents = price,
                         suggestedPriceCents = draft.suggestedPriceCents,
+                        referencePriceCents = draft.referencePriceCents,
                         ocr = draft.ocrRawText?.takeIf { draft.priceCandidates.isNotEmpty() }?.let {
                             OcrCapture(it, draft.priceCandidates, draft.ocrPriceCents)
                         },

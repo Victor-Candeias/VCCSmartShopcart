@@ -172,6 +172,17 @@ class ProductUseCasesTest {
     }
 
     @Test
+    fun `preco de referencia Open Prices confirmado sem alteracao fica com essa fonte`() = runTest {
+        val sessionId = startSession("Continente")
+
+        val accepted = addScanned(sessionId, scanned(nutella, "Nutella", 329).copy(referencePriceCents = 329))
+        val changed = addScanned(sessionId, scanned(nutella, "Nutella", 349).copy(referencePriceCents = 329))
+
+        assertEquals(PriceSource.OPEN_PRICES, accepted.priceSource)
+        assertEquals(PriceSource.MANUAL, changed.priceSource)
+    }
+
+    @Test
     fun `item lido liga o item planeado ao produto`() = runTest {
         val list = CreateShoppingListUseCase(lists, ids, time)("Semana", null)
         val milk = SaveShoppingListItemUseCase(lists, ids, time)(list.id, null, ListItemInput("Leite", BigDecimal("6"), MeasureUnit.UN, null))

@@ -8,14 +8,17 @@ import pt.vcc.smartshopcart.core.ocr.OcrLine
 import pt.vcc.smartshopcart.core.ocr.PriceCandidateParser
 import pt.vcc.smartshopcart.core.ocr.PriceParseResult
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
+import pt.vcc.smartshopcart.domain.model.PriceBasis
 import pt.vcc.smartshopcart.domain.model.PriceCandidate
 import pt.vcc.smartshopcart.domain.model.PriceKind
 import pt.vcc.smartshopcart.domain.model.PriceSource
 import pt.vcc.smartshopcart.domain.model.Product
 import pt.vcc.smartshopcart.domain.model.ProductPrice
 import pt.vcc.smartshopcart.domain.model.ProductSource
+import pt.vcc.smartshopcart.domain.model.ReferencePrice
 import pt.vcc.smartshopcart.domain.usecase.ProductLookupStatus
 import pt.vcc.smartshopcart.domain.usecase.ResolveProductResult
+import java.time.LocalDate
 
 class CaptureDraftReducerTest {
 
@@ -127,4 +130,37 @@ class CaptureDraftReducerTest {
         assertEquals(false, draft.priceFromOcr)
         assertEquals("3017620422003", draft.barcode)
     }
+
+    @Test
+    fun `preco de referencia so preenche o preco e ajusta a unidade a base`() {
+        val withPrice = CaptureDraftReducer.withPrices(CaptureDraftReducer.withProduct(null, nutella, null), label, null)!!
+
+        val perUnit = CaptureDraftReducer.withReferencePrice(withPrice.copy(unit = MeasureUnit.KG), reference(329, PriceBasis.UNIT))
+        assertEquals("3,29", perUnit.price)
+        assertEquals(MeasureUnit.UN, perUnit.unit)
+        assertNull(perUnit.selectedCandidate)
+        assertEquals(true, perUnit.priceFromReference)
+        assertEquals(false, perUnit.priceFromOcr)
+
+        val perKg = CaptureDraftReducer.withReferencePrice(withPrice.copy(unit = MeasureUnit.G), reference(1299, PriceBasis.KILOGRAM))
+        assertEquals(MeasureUnit.G, perKg.unit)
+        assertEquals(MeasureUnit.KG, CaptureDraftReducer.withReferencePrice(withPrice, reference(1299, PriceBasis.KILOGRAM)).unit)
+
+        assertEquals(false, perUnit.copy(price = "3,49").priceFromReference)
+    }
+
+    private fun reference(cents: Long, basis: PriceBasis) = ReferencePrice(
+        externalId = 1,
+        barcode = "3017620422003",
+        priceCents = cents,
+        storeName = "Pingo Doce",
+        storeCity = "Lisboa",
+        storeCountryCode = "PT",
+        locationId = 33,
+        observedAt = LocalDate.of(2026, 1, 11),
+        isDiscounted = false,
+        discountType = null,
+        priceWithoutDiscountCents = null,
+        basis = basis,
+    )
 }

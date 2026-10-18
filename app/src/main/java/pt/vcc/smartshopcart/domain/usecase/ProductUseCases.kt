@@ -123,6 +123,8 @@ data class CaptureConfirmation(
     val suggestedPriceCents: Long? = null,
     val ocr: OcrCapture? = null,
     val shoppingListItemId: String? = null,
+    /** Preço de referência Open Prices escolhido pelo utilizador antes de confirmar (OP14). */
+    val referencePriceCents: Long? = null,
 )
 
 /**
@@ -130,7 +132,7 @@ data class CaptureConfirmation(
  * cria um produto manual quando o código não é conhecido e há nome (§5.1), liga o item planeado ao
  * produto, adiciona o item à sessão e regista a leitura OCR como `PriceCapture`.
  * Fonte do preço: `OCR` se o preço lido for aceite sem alteração, `HISTORY` se for o último preço
- * sugerido (D17), senão `MANUAL`.
+ * sugerido (D17), `OPEN_PRICES` se for o preço de referência escolhido (OP14), senão `MANUAL`.
  */
 class ConfirmCaptureUseCase @Inject constructor(
     private val sessions: ShoppingSessionRepository,
@@ -169,6 +171,7 @@ class ConfirmCaptureUseCase @Inject constructor(
         val source = when (input.unitPriceCents) {
             input.ocr?.detectedPriceCents -> PriceSource.OCR
             input.suggestedPriceCents -> PriceSource.HISTORY
+            input.referencePriceCents -> PriceSource.OPEN_PRICES
             else -> PriceSource.MANUAL
         }
         val item = addItem(
