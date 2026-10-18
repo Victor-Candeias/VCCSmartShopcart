@@ -6,7 +6,8 @@ title: "Testes de aceitação, acessibilidade, documentação e APK release 0.4.
 created: 2026-10-18
 owner: developer
 priority: medium
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - dr-06-release-spec
 track: vcc-despesas-rapidas

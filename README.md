@@ -1,9 +1,14 @@
 # VCCSmartShopcart
 
-Aplicação Android nativa, offline-first, com dois modos de utilização: **calculadora rápida** e **lista planeada**,
-com scanner de código de barras e preço por OCR, identificação de produtos via Open Food Facts, orçamento e histórico local.
+Aplicação Android nativa, offline-first, com três modos de utilização: **calculadora rápida**, **lista planeada** e
+**despesas rápidas**, com scanner de código de barras e preço por OCR, identificação de produtos via Open Food Facts, orçamento e histórico local.
 No passo de confirmação do scanner é possível consultar **preços de referência em Portugal** (Open Prices, ODbL), guardados em
 cache local (Room v2) e usados apenas após confirmação explícita.
+
+O modo **Despesas Rápidas** regista consumos do dia a dia (cafés, refeições, transportes…) em poucos toques: catálogo
+predefinido por categorias e personalizável, seleção rápida de vários produtos com quantidades, total automático,
+estabelecimento opcional, rascunho local retomável, histórico (ver, editar, eliminar e repetir) e preço sugerido pelo
+último valor pago no mesmo estabelecimento → último valor pago → preço habitual. Funciona totalmente offline (Room v3).
 
 ## Documentação
 
@@ -13,6 +18,9 @@ cache local (Room v2) e usados apenas após confirmação explícita.
 - Integração Open Prices: [Documents/Integracao_Open_Prices_MVP_Android.md](Documents/Integracao_Open_Prices_MVP_Android.md),
   decisões [.maestru/docs/open-prices-decisoes.md](.maestru/docs/open-prices-decisoes.md) e
   work-items [.maestru/tracks/vcc-open-prices.md](.maestru/tracks/vcc-open-prices.md)
+- Despesas Rápidas: [Documents/CestoSmart_Despesas_Rapidas_Especificacao.md](Documents/CestoSmart_Despesas_Rapidas_Especificacao.md),
+  decisões [.maestru/docs/despesas-rapidas-decisoes.md](.maestru/docs/despesas-rapidas-decisoes.md) e
+  work-items [.maestru/tracks/vcc-despesas-rapidas.md](.maestru/tracks/vcc-despesas-rapidas.md)
 
 ## Compilar e testar
 

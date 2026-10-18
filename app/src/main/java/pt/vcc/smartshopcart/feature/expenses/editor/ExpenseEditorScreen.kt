@@ -440,9 +440,15 @@ private fun ExpenseLineRow(
                 Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.expense_quantity_increase, line.name))
             }
             val price = line.unitPriceCents
-            TextButton(onClick = onEditPrice, modifier = Modifier.weight(1f)) {
+            val priceText = if (price == null) stringResource(R.string.expense_set_price) else "× ${MoneyFormatter.format(price)}"
+            val priceDescription = stringResource(R.string.expense_price_for, line.name) + ", " +
+                (price?.let(MoneyFormatter::format) ?: stringResource(R.string.expense_set_price))
+            TextButton(
+                onClick = onEditPrice,
+                modifier = Modifier.weight(1f).semantics { contentDescription = priceDescription },
+            ) {
                 Text(
-                    if (price == null) stringResource(R.string.expense_set_price) else "× ${MoneyFormatter.format(price)}",
+                    priceText,
                     color = if (price == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 )
             }
