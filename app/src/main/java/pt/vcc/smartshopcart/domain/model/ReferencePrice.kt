@@ -46,3 +46,19 @@ data class ReferencePrice(
         const val HISTORICAL_AFTER_DAYS = 90L
     }
 }
+
+/** Estado da última consulta Open Prices de um EAN (OP10–OP12). */
+data class ReferenceSyncState(
+    val lastAttemptAt: Long,
+    val lastSuccessAt: Long?,
+    val status: ReferenceSyncStatus,
+    val totalAvailable: Int,
+    val incomplete: Boolean,
+    val retryAfter: Long?,
+)
+
+/** Preços de referência em cache para um EAN, do mais recente para o mais antigo, e o estado da última consulta. */
+data class ReferencePrices(
+    val prices: List<ReferencePrice>,
+    val sync: ReferenceSyncState?,
+)

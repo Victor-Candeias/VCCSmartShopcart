@@ -6,7 +6,8 @@ title: "Repositório de preços de referência: paginação, localizações, pol
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - op-03-repository-sync-spec
 track: vcc-open-prices
