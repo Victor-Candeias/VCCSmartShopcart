@@ -7,6 +7,7 @@ import pt.vcc.smartshopcart.core.database.dao.ExternalPriceDao
 import pt.vcc.smartshopcart.core.database.dao.PriceCaptureDao
 import pt.vcc.smartshopcart.core.database.dao.PriceHistoryDao
 import pt.vcc.smartshopcart.core.database.dao.ProductDao
+import pt.vcc.smartshopcart.core.database.dao.ReportsDao
 import pt.vcc.smartshopcart.core.database.dao.ShoppingListDao
 import pt.vcc.smartshopcart.core.database.dao.ShoppingSessionDao
 import pt.vcc.smartshopcart.core.database.dao.StoreDao
@@ -46,7 +47,7 @@ import pt.vcc.smartshopcart.core.database.entity.StoreEntity
         ExpenseEntity::class,
         ExpenseItemEntity::class,
     ],
-    version = 3,
+    version = ShoppingDatabase.VERSION,
     exportSchema = true,
 )
 abstract class ShoppingDatabase : RoomDatabase() {
@@ -58,8 +59,10 @@ abstract class ShoppingDatabase : RoomDatabase() {
     abstract fun priceCaptureDao(): PriceCaptureDao
     abstract fun externalPriceDao(): ExternalPriceDao
     abstract fun expenseDao(): ExpenseDao
+    abstract fun reportsDao(): ReportsDao
 
     companion object {
         const val NAME = "vccsmartshopcart.db"
+        const val VERSION = 4
     }
 }

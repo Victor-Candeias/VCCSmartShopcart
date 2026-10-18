@@ -96,6 +96,7 @@ class RoomShoppingSessionRepository @Inject constructor(
                 finalTotalCents = total,
             )
             dao.upsertSession(completed)
+            dao.snapshotProducts(id)
             val history = items
                 .filter { it.barcode != null || it.productId != null }
                 .map { item ->

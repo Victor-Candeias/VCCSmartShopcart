@@ -12,8 +12,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import pt.vcc.smartshopcart.core.common.IdProvider
 import pt.vcc.smartshopcart.core.common.SystemTimeProvider
+import pt.vcc.smartshopcart.core.common.SystemZoneProvider
 import pt.vcc.smartshopcart.core.common.TimeProvider
 import pt.vcc.smartshopcart.core.common.UuidIdProvider
+import pt.vcc.smartshopcart.core.common.ZoneProvider
 import pt.vcc.smartshopcart.core.database.ALL_MIGRATIONS
 import pt.vcc.smartshopcart.core.database.ShoppingDatabase
 import javax.inject.Qualifier
@@ -41,6 +43,7 @@ object DatabaseModule {
     @Provides fun priceCaptureDao(db: ShoppingDatabase) = db.priceCaptureDao()
     @Provides fun externalPriceDao(db: ShoppingDatabase) = db.externalPriceDao()
     @Provides fun expenseDao(db: ShoppingDatabase) = db.expenseDao()
+    @Provides fun reportsDao(db: ShoppingDatabase) = db.reportsDao()
 
     @Provides
     @IoDispatcher
@@ -52,4 +55,5 @@ object DatabaseModule {
 abstract class CommonModule {
     @Binds abstract fun bindTimeProvider(impl: SystemTimeProvider): TimeProvider
     @Binds abstract fun bindIdProvider(impl: UuidIdProvider): IdProvider
+    @Binds abstract fun bindZoneProvider(impl: SystemZoneProvider): ZoneProvider
 }

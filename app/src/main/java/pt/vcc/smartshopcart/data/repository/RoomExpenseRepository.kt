@@ -99,8 +99,12 @@ class RoomExpenseRepository @Inject constructor(
             ),
         )
         dao.deleteItems(id)
+        val categories = mutableMapOf<String, ExpenseCategoryEntity?>()
         dao.insertItems(
             draft.items.mapIndexed { index, item ->
+                val category = item.productId?.let { dao.getProduct(it) }?.categoryId?.let { categoryId ->
+                    categories.getOrPut(categoryId) { dao.getCategory(categoryId) }
+                }
                 ExpenseItemEntity(
                     id = ids.newId(),
                     expenseId = id,
@@ -110,6 +114,8 @@ class RoomExpenseRepository @Inject constructor(
                     unitPriceCents = item.unitPriceCents,
                     totalCents = item.totalCents,
                     position = index,
+                    categoryIdSnapshot = category?.id,
+                    categoryNameSnapshot = category?.name,
                 )
             },
         )

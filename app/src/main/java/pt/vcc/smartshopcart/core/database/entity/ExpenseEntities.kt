@@ -98,4 +98,7 @@ data class ExpenseItemEntity(
     val totalCents: Long,
     /** Ordem de apresentação dentro da despesa. */
     val position: Int,
+    /** Categoria do produto no momento da gravação, para os relatórios não mudarem com o catálogo. */
+    val categoryIdSnapshot: String? = null,
+    val categoryNameSnapshot: String? = null,
 )

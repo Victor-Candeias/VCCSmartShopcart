@@ -72,4 +72,36 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
-val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+/**
+ * v3 → v4: snapshots para relatórios (categoria nos itens de despesa; nome/categoria do produto nos
+ * itens de sessões concluídas), preenchidos a partir do catálogo atual, e índice por data de conclusão.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        listOf(
+            "ALTER TABLE `expense_items` ADD COLUMN `categoryIdSnapshot` TEXT",
+            "ALTER TABLE `expense_items` ADD COLUMN `categoryNameSnapshot` TEXT",
+            """
+            UPDATE `expense_items` SET
+                `categoryIdSnapshot` = (SELECT p.categoryId FROM expense_products p WHERE p.id = expense_items.productId),
+                `categoryNameSnapshot` = (
+                    SELECT c.name FROM expense_products p JOIN expense_categories c ON c.id = p.categoryId
+                    WHERE p.id = expense_items.productId
+                )
+            WHERE `productId` IS NOT NULL
+            """,
+            "ALTER TABLE `shopping_session_items` ADD COLUMN `productNameSnapshot` TEXT",
+            "ALTER TABLE `shopping_session_items` ADD COLUMN `categorySnapshot` TEXT",
+            """
+            UPDATE `shopping_session_items` SET
+                `productNameSnapshot` = (SELECT p.name FROM products p WHERE p.id = shopping_session_items.productId),
+                `categorySnapshot` = (SELECT p.category FROM products p WHERE p.id = shopping_session_items.productId)
+            WHERE `productId` IS NOT NULL
+                AND `sessionId` IN (SELECT id FROM shopping_sessions WHERE status = 'COMPLETED')
+            """,
+            "CREATE INDEX IF NOT EXISTS `index_shopping_sessions_status_completedAt` ON `shopping_sessions` (`status`, `completedAt`)",
+        ).forEach { db.execSQL(it.trimIndent()) }
+    }
+}
+
+val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)

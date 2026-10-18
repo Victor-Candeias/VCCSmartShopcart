@@ -27,7 +27,7 @@ Normaliza os movimentos reais dos três modos (calculadora, lista planeada concl
 | Modify | `data/repository/RoomExpenseRepository.kt` | Preenche a categoria ao gravar |
 | Modify | `data/repository/RoomShoppingSessionRepository.kt` | Preenche nome/categoria do produto ao concluir |
 
-- [ ] `MigrationTest` 3→4 valida o *backfill*
+- [x] `MigrationTest` 3→4 valida o *backfill*
 
 ### Phase 2: Domínio e consulta normalizada
 
@@ -41,7 +41,7 @@ Normaliza os movimentos reais dos três modos (calculadora, lista planeada concl
 
 IDs de dimensões têm prefixo da origem (`store:`, `establishment:`, `expense-category:`, `product-category:`, `product:`, `expense-product:`) para não colidir entre tabelas; estabelecimentos com o mesmo nome agrupam-se por nome.
 
-- [ ] `ReportsRepositoryTest` e `ReportSeriesTest` cobrem os cenários do §15 relativos a dados
+- [x] `ReportsRepositoryTest` e `ReportSeriesTest` cobrem os cenários do §15 relativos a dados
 
 ## Impacted Files
 

@@ -75,7 +75,12 @@ data class StoreEntity(
             onDelete = ForeignKey.SET_NULL,
         ),
     ],
-    indices = [Index("status", "startedAt"), Index("shoppingListId"), Index("storeId")],
+    indices = [
+        Index("status", "startedAt"),
+        Index("status", "completedAt"),
+        Index("shoppingListId"),
+        Index("storeId"),
+    ],
 )
 data class ShoppingSessionEntity(
     @PrimaryKey val id: String,
@@ -127,6 +132,9 @@ data class ShoppingSessionItemEntity(
     val totalCents: Long,
     val priceSource: PriceSource,
     val addedAt: Long,
+    /** Nome e categoria do produto fixados ao concluir a sessão (relatórios históricos). */
+    val productNameSnapshot: String? = null,
+    val categorySnapshot: String? = null,
 )
 
 /** `barcode` não é chave nem único (D7): o mesmo código pode ter vários registos. */

@@ -43,6 +43,9 @@ interface ExpenseDao {
     @Query("SELECT * FROM expense_products WHERE id = :id")
     suspend fun getProduct(id: String): ExpenseProductEntity?
 
+    @Query("SELECT * FROM expense_categories WHERE id = :id")
+    suspend fun getCategory(id: String): ExpenseCategoryEntity?
+
     @Upsert
     suspend fun upsertProduct(product: ExpenseProductEntity)
 

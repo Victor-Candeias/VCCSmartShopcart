@@ -8,7 +8,8 @@ owner: developer
 priority: high
 specs:
   - rp-01-data-model-spec
-status: assigned
+status: done
+completed: 2026-10-19
 track: vcc-relatorios
 ---
 

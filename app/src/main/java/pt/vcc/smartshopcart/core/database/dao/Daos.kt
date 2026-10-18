@@ -135,6 +135,17 @@ interface ShoppingSessionDao {
     @Query("SELECT COALESCE(SUM(totalCents), 0) FROM shopping_session_items WHERE sessionId = :sessionId")
     suspend fun sumTotal(sessionId: String): Long
 
+    /** Fixa nome e categoria do produto nos itens da sessão (snapshot histórico para relatórios). */
+    @Query(
+        """
+        UPDATE shopping_session_items SET
+            productNameSnapshot = (SELECT p.name FROM products p WHERE p.id = shopping_session_items.productId),
+            categorySnapshot = (SELECT p.category FROM products p WHERE p.id = shopping_session_items.productId)
+        WHERE sessionId = :sessionId AND productId IS NOT NULL
+        """,
+    )
+    suspend fun snapshotProducts(sessionId: String)
+
     @Query("SELECT * FROM session_planned_item_states WHERE sessionId = :sessionId")
     fun observePlannedStates(sessionId: String): Flow<List<SessionPlannedItemStateEntity>>
 

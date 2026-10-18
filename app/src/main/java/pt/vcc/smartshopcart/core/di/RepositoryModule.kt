@@ -4,6 +4,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import pt.vcc.smartshopcart.data.reports.ReportsRepositoryImpl
 import pt.vcc.smartshopcart.data.repository.OpenPricesRepository
 import pt.vcc.smartshopcart.data.repository.RoomExpenseRepository
 import pt.vcc.smartshopcart.data.repository.RoomPriceCaptureRepository
@@ -20,6 +21,7 @@ import pt.vcc.smartshopcart.domain.repository.ShoppingListRepository
 import pt.vcc.smartshopcart.domain.repository.ShoppingSessionRepository
 import pt.vcc.smartshopcart.domain.repository.StoreRepository
 import pt.vcc.smartshopcart.domain.repository.TransactionRunner
+import pt.vcc.smartshopcart.domain.reports.ReportsRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -32,4 +34,5 @@ abstract class RepositoryModule {
     @Binds abstract fun bindTransactionRunner(impl: RoomTransactionRunner): TransactionRunner
     @Binds abstract fun bindReferencePriceRepository(impl: OpenPricesRepository): ReferencePriceRepository
     @Binds abstract fun bindExpenseRepository(impl: RoomExpenseRepository): ExpenseRepository
+    @Binds abstract fun bindReportsRepository(impl: ReportsRepositoryImpl): ReportsRepository
 }
