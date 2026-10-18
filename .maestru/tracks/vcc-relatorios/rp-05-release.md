@@ -8,7 +8,8 @@ owner: developer
 priority: medium
 specs:
   - rp-05-release-spec
-status: backlog
+status: done
+completed: 2026-10-19
 track: vcc-relatorios
 blocked-by:
   - rp-02-dashboard

@@ -39,3 +39,8 @@ Fecho do MVP (§15, §17): testes de aceitação, acessibilidade, documentação
 | `test/.../ReportsAcceptanceTest.kt` | Create | Critérios do §17 |
 | `README.md`, `.maestru/docs/relatorios-decisoes.md` | Modify/Create | Documentação |
 | `app/build.gradle.kts` | Modify | Versão |
+
+## Verificação
+
+- [x] `ReportsAcceptanceTest` (4 cenários) e suite completa (200 testes) verdes
+- [x] `VCCSmartShopcart-0.5.0-release.apk` (versionCode 7) gerado e verificado com `apksigner` (esquema v2, CN=VCCSmartShopcart)

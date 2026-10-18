@@ -10,6 +10,12 @@ predefinido por categorias e personalizável, seleção rápida de vários produ
 estabelecimento opcional, rascunho local retomável, histórico (ver, editar, eliminar e repetir) e preço sugerido pelo
 último valor pago no mesmo estabelecimento → último valor pago → preço habitual. Funciona totalmente offline (Room v3).
 
+O módulo **Relatórios** mostra gastos por período (hoje, 7 dias, este mês, mês anterior, este ano ou intervalo
+personalizado) com filtros por modo, categoria, estabelecimento e produto, KPIs, comparação com o período anterior,
+orçamento vs. realizado e gráficos (evolução, categorias, estabelecimentos, modos, produtos) com descrição acessível.
+O relatório filtrado pode ser exportado em **CSV** (Excel pt-PT), **JSON** versionado ou **PDF** multipágina, gerados
+no dispositivo, e guardado numa pasta escolhida (Storage Access Framework) ou partilhado com outra aplicação.
+
 ## Documentação
 
 - Documento de implementação: [Documents/Implementacao_MVP_App_Compras.md](Documents/Implementacao_MVP_App_Compras.md)
@@ -21,6 +27,9 @@ estabelecimento opcional, rascunho local retomável, histórico (ver, editar, el
 - Despesas Rápidas: [Documents/CestoSmart_Despesas_Rapidas_Especificacao.md](Documents/CestoSmart_Despesas_Rapidas_Especificacao.md),
   decisões [.maestru/docs/despesas-rapidas-decisoes.md](.maestru/docs/despesas-rapidas-decisoes.md) e
   work-items [.maestru/tracks/vcc-despesas-rapidas.md](.maestru/tracks/vcc-despesas-rapidas.md)
+- Relatórios e exportações: [Documents/CestoSmart_Relatorios_Graficos_Exportacoes_Implementacao.md](Documents/CestoSmart_Relatorios_Graficos_Exportacoes_Implementacao.md),
+  decisões [.maestru/docs/relatorios-decisoes.md](.maestru/docs/relatorios-decisoes.md) e
+  work-items [.maestru/tracks/vcc-relatorios.md](.maestru/tracks/vcc-relatorios.md)
 
 ## Compilar e testar
 
