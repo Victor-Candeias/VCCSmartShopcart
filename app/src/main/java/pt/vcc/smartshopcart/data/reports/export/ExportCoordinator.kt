@@ -70,6 +70,13 @@ class ExportCoordinator @Inject constructor(
         exportDir.listFiles()?.forEach { it.delete() }
     }
 
+    /** Apaga ficheiros de partilha com mais de [maxAgeMillis] (24 h por omissão). */
+    suspend fun clearStaleShareFiles(nowMillis: Long = System.currentTimeMillis(), maxAgeMillis: Long = STALE_AFTER_MILLIS) =
+        withContext(Dispatchers.IO) {
+            exportDir.listFiles()?.filter { nowMillis - it.lastModified() > maxAgeMillis }?.forEach { it.delete() }
+            Unit
+        }
+
     private fun exporter(format: ExportFormat): ReportExporter =
         byFormat[format] ?: throw UnsupportedOperationException("Formato ${format.name} ainda não disponível.")
 
@@ -77,6 +84,7 @@ class ExportCoordinator @Inject constructor(
         const val EXPORT_DIR = "exports"
         const val AUTHORITY_SUFFIX = ".fileprovider"
         const val FILE_PREFIX = "VCCSmartShopcart_Relatorio"
+        const val STALE_AFTER_MILLIS = 24L * 60 * 60 * 1000
         private val INVALID_CHARS = Regex("""[\\/:*?"<>|\p{Cntrl}]""")
 
         /** Remove caracteres inválidos, limita o tamanho e garante a extensão do formato. */

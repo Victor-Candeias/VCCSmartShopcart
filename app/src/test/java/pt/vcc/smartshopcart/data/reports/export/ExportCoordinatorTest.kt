@@ -88,6 +88,19 @@ class ExportCoordinatorTest {
         assertEquals("VCCSmartShopcart_Relatorio.csv", ExportCoordinator.sanitizeFileName("  ", ExportFormat.CSV))
     }
 
+    @Test
+    fun `limpeza automatica apaga apenas ficheiros com mais de 24 horas`() = runTest {
+        exportDir.mkdirs()
+        val now = System.currentTimeMillis()
+        val old = File(exportDir, "antigo.csv").apply { writeText("x"); setLastModified(now - ExportCoordinator.STALE_AFTER_MILLIS - 60_000) }
+        val recent = File(exportDir, "recente.csv").apply { writeText("x"); setLastModified(now - 60_000) }
+
+        coordinator.clearStaleShareFiles(now)
+
+        assertFalse(old.exists())
+        assertTrue(recent.exists())
+    }
+
     private class FailingExporter(private val failure: Exception) : ReportExporter {
         override val format = ExportFormat.CSV
 

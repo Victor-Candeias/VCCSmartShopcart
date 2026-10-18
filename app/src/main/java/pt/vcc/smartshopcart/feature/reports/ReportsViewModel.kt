@@ -88,6 +88,10 @@ class ReportsViewModel @Inject constructor(
     val exporting: StateFlow<Boolean> = exportingState.asStateFlow()
     val exportFormats: List<ExportFormat> get() = exports.availableFormats
 
+    init {
+        viewModelScope.launch { runCatching { exports.clearStaleShareFiles() } }
+    }
+
     private val storedFilter = combine(
         savedStateHandle.getStateFlow(KEY_PRESET, ReportPeriodPreset.THIS_MONTH.name),
         savedStateHandle.getStateFlow<String?>(KEY_START, null),

@@ -30,7 +30,9 @@ PDF gerado no dispositivo (§11) com paginação, cabeçalhos repetidos, rodapé
 - Ficheiros de partilha em `cache/exports`, apagados antes de cada nova partilha, após 24 h e a pedido.
 - Nenhum envio para servidores; exportações em *streaming* (CSV linha a linha, JSON `encodeToStream`).
 
-- [ ] `PdfLayoutEngineTest` (0, 1, 50, 1000 linhas, acentos) verde
+- [x] `PdfLayoutEngineTest` (0, 1, 50, 1000 linhas, acentos, margens, cabeçalho repetido, «Página X de N») verde
+- [x] Limpeza automática de `cache/exports` (> 24 h) ao abrir Relatórios, testada em `ExportCoordinatorTest`
+- [x] Teste instrumentado `PdfReportExporterTest` (1000 linhas → PDF A4 multipágina via `PdfRenderer`); o Robolectric não suporta `PdfDocument`
 
 ## Impacted Files
 
@@ -39,4 +41,6 @@ PDF gerado no dispositivo (§11) com paginação, cabeçalhos repetidos, rodapé
 | `data/reports/export/pdf/PdfLayoutEngine.kt` | Create | Paginação testável |
 | `data/reports/export/PdfReportExporter.kt` | Create | Renderização |
 | `data/reports/export/ExportCoordinator.kt`, `feature/reports/*` | Modify | Erros, limpeza, mensagens |
+| `data/reports/export/pdf/PdfReportContentBuilder.kt` | Create | `ReportData` → conteúdo do PDF (mesmas séries do dashboard) |
 | `test/.../PdfLayoutEngineTest.kt` | Create | Testes |
+| `androidTest/.../PdfReportExporterTest.kt` | Create | PDF real no dispositivo |

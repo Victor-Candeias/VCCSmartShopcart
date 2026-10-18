@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import pt.vcc.smartshopcart.data.reports.export.CsvReportExporter
 import pt.vcc.smartshopcart.data.reports.export.JsonReportExporter
+import pt.vcc.smartshopcart.data.reports.export.PdfReportExporter
 import pt.vcc.smartshopcart.data.reports.export.ReportExporter
 
 /** Exportadores de relatórios; acrescentar um formato é só mais um `@IntoSet`. */
@@ -16,4 +17,6 @@ abstract class ReportsModule {
     @Binds @IntoSet abstract fun bindCsvExporter(impl: CsvReportExporter): ReportExporter
 
     @Binds @IntoSet abstract fun bindJsonExporter(impl: JsonReportExporter): ReportExporter
+
+    @Binds @IntoSet abstract fun bindPdfExporter(impl: PdfReportExporter): ReportExporter
 }
