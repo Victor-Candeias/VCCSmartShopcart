@@ -30,6 +30,8 @@ import androidx.navigation.compose.rememberNavController
 import pt.vcc.smartshopcart.R
 import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
 import pt.vcc.smartshopcart.feature.expenses.catalog.ExpenseCatalogScreen
+import pt.vcc.smartshopcart.feature.expenses.editor.ExpenseEditorScreen
+import pt.vcc.smartshopcart.feature.expenses.home.ExpensesHomeScreen
 import pt.vcc.smartshopcart.feature.history.HistoryDetailScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
@@ -95,6 +97,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 HomeScreen(
                     onOpenSession = navController::navigateToSession,
                     onOpenLists = { navController.navigateTopLevel(ListsRoute) },
+                    onOpenExpenses = { navController.navigate(ExpensesHomeRoute) },
                 )
             }
             composable<ListsRoute> {
@@ -141,6 +144,23 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 )
             }
             composable<ExpenseCatalogRoute> { ExpenseCatalogScreen(onBack = { navController.popBackStack() }) }
+            composable<ExpensesHomeRoute> {
+                ExpensesHomeScreen(
+                    onBack = { navController.popBackStack() },
+                    onNewExpense = { categoryId, productId ->
+                        navController.navigate(ExpenseEditorRoute(categoryId = categoryId, productId = productId))
+                    },
+                    onResumeDraft = { navController.navigate(ExpenseEditorRoute(resumeDraft = true)) },
+                    onOpenHistory = null,
+                    onOpenCatalog = { navController.navigate(ExpenseCatalogRoute) },
+                )
+            }
+            composable<ExpenseEditorRoute> {
+                ExpenseEditorScreen(
+                    onBack = { navController.popBackStack() },
+                    onFinished = navController::closeExpenseEditor,
+                )
+            }
         }
     }
 }
@@ -158,6 +178,11 @@ private fun NavHostController.closeSession() {
         popUpTo(graph.findStartDestination().id) { inclusive = false }
         launchSingleTop = true
     }
+}
+
+/** Após guardar/cancelar uma despesa volta ao ecrã anterior ao editor. */
+private fun NavHostController.closeExpenseEditor() {
+    popBackStack<ExpenseEditorRoute>(inclusive = true)
 }
 
 private fun NavHostController.navigateTopLevel(route: Any) {

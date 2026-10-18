@@ -6,7 +6,8 @@ title: "Editor de despesa: modo no Início, seleção rápida, quantidades, tota
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - dr-03-editor-spec
 track: vcc-despesas-rapidas

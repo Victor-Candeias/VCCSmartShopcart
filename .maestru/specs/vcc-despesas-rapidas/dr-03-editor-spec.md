@@ -20,8 +20,8 @@ Fluxo principal do §2.2: Início → Despesas rápidas → categoria → produt
 ### Fase 1 — Domínio
 
 - `CalculateExpenseTotalUseCase` e `ExpenseValidation` (pelo menos um item, quantidade ≥ 1, preço definido e ≥ 0).
-- `CreateExpenseUseCase` (valida e grava via `ExpenseRepository.saveExpense`).
-- `ExpenseEditorDraft` serializável (preço anulável enquanto não confirmado, `editingExpenseId?`, `selectedCategoryId?`) e `ExpenseDraftStore` (DataStore `expense_draft`).
+- `SaveExpenseUseCase` único para criar e atualizar (valida com `ExpenseValidation`, grava via `ExpenseRepository.saveExpense(draft, editingExpenseId)` e limpa o rascunho) e `StartExpenseDraftUseCase` (nova despesa à hora atual, com categoria/produto opcionais).
+- `ExpenseEditorDraft` serializável (preço anulável enquanto não confirmado, `editingExpenseId?`, `selectedCategoryId?`) e `ExpenseDraftStore` (chave `expense_draft` no DataStore de `ExpensePreferences`).
 
 ### Fase 2 — Navegação e Início
 
@@ -38,7 +38,7 @@ Fluxo principal do §2.2: Início → Despesas rápidas → categoria → produt
 |------|--------|---------|
 | `domain/usecase/expense/ExpenseUseCases.kt` | create | Criar, total, validação |
 | `domain/model/expense/ExpenseEditorDraft.kt` | create | Rascunho do editor |
-| `data/draft/DataStoreExpenseDraftStore.kt` | create | Persistência do rascunho |
+| `core/datastore/ExpensePreferences.kt` | modify | Persistência do rascunho (implementa `ExpenseDraftStore`) |
 | `core/navigation/Routes.kt`, `AppNavHost.kt` | modify | Rotas e grafo |
 | `feature/home/HomeScreen.kt` | modify | Terceiro modo |
 | `feature/expenses/home/*`, `feature/expenses/editor/*` | create | Ecrãs e ViewModels |

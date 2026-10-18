@@ -29,4 +29,19 @@ import kotlinx.serialization.Serializable
 
 // Despesas rápidas
 
+@Serializable data object ExpensesHomeRoute
+
+/**
+ * Editor de despesa. Sem argumentos cria uma despesa nova; [categoryId]/[productId] pré-selecionam
+ * o catálogo; [resumeDraft] retoma o rascunho guardado.
+ */
+@Serializable
+data class ExpenseEditorRoute(
+    val expenseId: String? = null,
+    val categoryId: String? = null,
+    val productId: String? = null,
+    val repeatFromId: String? = null,
+    val resumeDraft: Boolean = false,
+)
+
 @Serializable data object ExpenseCatalogRoute

@@ -34,6 +34,7 @@ import pt.vcc.smartshopcart.domain.model.SessionMode
 fun HomeScreen(
     onOpenSession: (sessionId: String, mode: SessionMode) -> Unit,
     onOpenLists: () -> Unit,
+    onOpenExpenses: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val active by viewModel.activeSession.collectAsStateWithLifecycle()
@@ -61,6 +62,7 @@ fun HomeScreen(
             if (active != null) showActiveExists = true else showStartDialog = true
         }
         HomeEntry(stringResource(R.string.home_lists), stringResource(R.string.home_lists_hint), onOpenLists)
+        HomeEntry(stringResource(R.string.home_expenses), stringResource(R.string.home_expenses_hint), onOpenExpenses)
     }
 
     if (showStartDialog) {

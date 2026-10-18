@@ -265,4 +265,52 @@
     <string name="expense_favorite_remove">Retirar %1$s dos favoritos</string>
     <string name="expense_move_up">Subir %1$s</string>
     <string name="expense_move_down">Descer %1$s</string>
+
+    <!-- Despesas rápidas: início e editor -->
+    <string name="home_expenses">Despesas rápidas</string>
+    <string name="home_expenses_hint">Registar cafés, refeições e pequenas despesas</string>
+    <string name="action_ok">OK</string>
+    <string name="action_continue">Continuar</string>
+    <string name="action_discard">Descartar</string>
+    <string name="action_keep_editing">Continuar a editar</string>
+    <string name="expense_new">Nova despesa</string>
+    <string name="expense_edit">Editar despesa</string>
+    <string name="expense_history_title">Histórico</string>
+    <string name="expense_favorites">Favoritos</string>
+    <string name="expense_categories">Categorias</string>
+    <string name="expense_draft_title">Despesa por concluir</string>
+    <plurals name="expense_draft_summary">
+        <item quantity="one">%1$d item · %2$s</item>
+        <item quantity="other">%1$d itens · %2$s</item>
+    </plurals>
+    <string name="expense_draft_conflict_title">Despesa por concluir</string>
+    <string name="expense_draft_conflict_text">Existe uma despesa que não foi guardada. Pretende continuá-la ou descartá-la?</string>
+    <string name="expense_establishment">Estabelecimento (opcional)</string>
+    <string name="expense_time">Hora</string>
+    <string name="expense_date_value">Data: %1$s</string>
+    <string name="expense_time_value">Hora: %1$s</string>
+    <string name="expense_selected">Produtos escolhidos</string>
+    <string name="expense_no_items">Toque num produto abaixo para o adicionar.</string>
+    <string name="expense_add_product">Adicionar produto</string>
+    <string name="expense_add_named">Adicionar %1$s</string>
+    <string name="expense_notes">Notas (opcional)</string>
+    <string name="expense_total">Total</string>
+    <string name="expense_total_value">Total: %1$s</string>
+    <string name="expense_set_price">Definir preço</string>
+    <string name="expense_price_for">Preço: %1$s</string>
+    <string name="expense_quantity_value">Quantidade %1$d</string>
+    <string name="expense_quantity_increase">Aumentar quantidade de %1$s</string>
+    <string name="expense_quantity_decrease">Diminuir quantidade de %1$s</string>
+    <string name="expense_remove_line">Remover %1$s</string>
+    <string name="expense_error_no_items">Adicione pelo menos um produto.</string>
+    <string name="expense_error_missing_price">Defina o preço de todos os produtos.</string>
+    <string name="expense_error_invalid">Há quantidades ou preços inválidos.</string>
+    <plurals name="expense_missing_prices">
+        <item quantity="one">Falta o preço de %d produto</item>
+        <item quantity="other">Falta o preço de %d produtos</item>
+    </plurals>
+    <string name="expense_saved">Despesa guardada: %1$s</string>
+    <string name="expense_cancel_title">Cancelar despesa?</string>
+    <string name="expense_cancel_text">Os produtos escolhidos serão descartados.</string>
+    <string name="expense_cancel_edit_text">As alterações não guardadas serão descartadas. A despesa original mantém-se.</string>
 </resources>
