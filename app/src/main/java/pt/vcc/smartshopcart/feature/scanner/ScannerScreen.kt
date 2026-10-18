@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -478,8 +479,10 @@ private fun ManualPriceDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit
 private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, modifier: Modifier = Modifier) {
     val draft = state.draft ?: return
     var showReferencePrices by rememberSaveable(draft.barcode) { mutableStateOf(false) }
+    // Com edge-to-edge o adjustResize não encolhe a janela: o imePadding reduz a área de scroll
+    // para o campo focado (p.ex. o preço) ficar acima do teclado.
     Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         val found = draft.productId != null
