@@ -330,4 +330,10 @@
     <string name="expense_missing">Esta despesa já não existe.</string>
     <string name="expense_item_line">%1$d × %2$s</string>
     <string name="expense_actions_for">Ações da despesa de %1$s</string>
+
+    <!-- Despesas rápidas: sugestões de preço -->
+    <string name="expense_price_suggested">Sugestão: %1$s (confirme ou altere)</string>
+    <string name="expense_price_source_same">último preço aqui</string>
+    <string name="expense_price_source_last">último preço pago</string>
+    <string name="expense_price_source_catalog">preço habitual</string>
 </resources>

@@ -18,7 +18,9 @@ Ao selecionar um produto sugere-se um preço (§7) pela ordem: último preço pa
 ## Implementation
 
 - `ExpenseDao.lastPriceAt(productId, establishmentName)` e `lastPrice(productId)` (`expense_items` ⨝ `expenses` ordenado por `occurredAt DESC`).
-- `SuggestProductPriceUseCase` → `PriceSuggestion(cents?, source)` com `PriceSuggestionSource { SAME_ESTABLISHMENT, LAST_PAID, CATALOG, NONE }`.
+- `ExpenseRepository.lastPaidPrice(productId, establishmentName?)`.
+- `SuggestProductPriceUseCase` → `PriceSuggestion(cents?, source?)` com `PriceSuggestionSource { SAME_ESTABLISHMENT, LAST_PAID, CATALOG }` (`PriceSuggestion.NONE` = campo vazio) e `suggestionsFor(draft)` para recalcular linhas.
+- `ExpenseEditorLine.priceSource` (nulo = preço confirmado pelo utilizador) e `ExpenseEditorDraft.applySuggestions` (só altera linhas com preço sugerido ou vazio). Alterar o preço no teclado confirma-o; guardar a despesa confirma os preços sugeridos visíveis.
 - Editor: ao adicionar um produto usa a sugestão; ao mudar o estabelecimento recalcula apenas as linhas com preço ainda sugerido; mostra a origem ("Último preço aqui", "Último preço pago", "Preço habitual").
 - Repetição usa a sugestão com recurso ao preço original.
 
@@ -28,5 +30,7 @@ Ao selecionar um produto sugere-se um preço (§7) pela ordem: último preço pa
 |------|--------|---------|
 | `core/database/dao/ExpenseDao.kt` | modify | Consultas de último preço |
 | `domain/usecase/expense/SuggestProductPriceUseCase.kt` | create | Prioridade de sugestão |
+| `domain/model/expense/ExpenseEditorDraft.kt` | modify | Origem da sugestão por linha |
+| `domain/usecase/expense/ExpenseUseCases.kt` | modify | Nova despesa e repetição com sugestões |
 | `feature/expenses/editor/*` | modify | Integração |
 | `test/.../SuggestProductPriceUseCaseTest.kt` | create | Testes de prioridade |

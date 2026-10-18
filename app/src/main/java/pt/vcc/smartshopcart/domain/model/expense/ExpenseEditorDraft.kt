@@ -31,12 +31,18 @@ data class ExpenseEditorDraft(
      * Acrescenta o produto; se já estiver na despesa aumenta a quantidade (tocar duas vezes em
      * "Café" regista 2 cafés).
      */
-    fun addProduct(product: ExpenseProduct, key: String, unitPriceCents: Long?): ExpenseEditorDraft {
+    fun addProduct(
+        product: ExpenseProduct,
+        key: String,
+        unitPriceCents: Long?,
+        priceSource: PriceSuggestionSource? = null,
+    ): ExpenseEditorDraft {
         val existing = lines.firstOrNull { it.productId == product.id }
         return if (existing != null) {
             changeQuantity(existing.key, +1)
         } else {
-            copy(lines = lines + ExpenseEditorLine(key, product.id, product.name, 1, unitPriceCents))
+            val source = priceSource.takeIf { unitPriceCents != null }
+            copy(lines = lines + ExpenseEditorLine(key, product.id, product.name, 1, unitPriceCents, source))
         }
     }
 
@@ -46,8 +52,21 @@ data class ExpenseEditorDraft(
 
     fun setPrice(key: String, unitPriceCents: Long): ExpenseEditorDraft {
         require(unitPriceCents >= 0) { "Preço negativo" }
-        return updateLine(key) { it.copy(unitPriceCents = unitPriceCents) }
+        return updateLine(key) { it.copy(unitPriceCents = unitPriceCents, priceSource = null) }
     }
+
+    /**
+     * Aplica novas sugestões (por chave de linha) apenas às linhas cujo preço ainda é uma sugestão
+     * ou está vazio; preços confirmados pelo utilizador nunca são substituídos.
+     */
+    fun applySuggestions(suggestions: Map<String, PriceSuggestion>): ExpenseEditorDraft =
+        copy(
+            lines = lines.map { line ->
+                val suggestion = suggestions[line.key]
+                if (suggestion == null || !line.acceptsSuggestion) line
+                else line.copy(unitPriceCents = suggestion.cents, priceSource = suggestion.source.takeIf { suggestion.cents != null })
+            },
+        )
 
     fun removeLine(key: String): ExpenseEditorDraft = copy(lines = lines.filterNot { it.key == key })
 
@@ -67,7 +86,24 @@ data class ExpenseEditorLine(
     val name: String,
     val quantity: Int = 1,
     val unitPriceCents: Long? = null,
+    /** Origem da sugestão de preço; nulo quando o preço foi introduzido/confirmado pelo utilizador. */
+    val priceSource: PriceSuggestionSource? = null,
 ) {
     val subtotalCents: Long?
         get() = unitPriceCents?.let { Math.multiplyExact(quantity.toLong(), it) }
+
+    /** O preço pode ser recalculado: ainda é uma sugestão ou não foi definido. */
+    val acceptsSuggestion: Boolean
+        get() = productId != null && (priceSource != null || unitPriceCents == null)
+}
+
+/** Origem de um preço sugerido (§7), por ordem de prioridade. */
+@Serializable
+enum class PriceSuggestionSource { SAME_ESTABLISHMENT, LAST_PAID, CATALOG }
+
+/** Preço sugerido; `cents` nulo significa campo vazio para introdução manual. */
+data class PriceSuggestion(val cents: Long?, val source: PriceSuggestionSource?) {
+    companion object {
+        val NONE = PriceSuggestion(null, null)
+    }
 }

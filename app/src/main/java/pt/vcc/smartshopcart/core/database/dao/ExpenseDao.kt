@@ -121,4 +121,29 @@ interface ExpenseDao {
 
     @Query("SELECT COALESCE(SUM(totalCents), 0) FROM expense_items WHERE expenseId = :expenseId")
     suspend fun sumItems(expenseId: String): Long
+
+    /** Último preço unitário pago pelo produto no estabelecimento indicado (nome sem distinção de maiúsculas). */
+    @Query(
+        """
+        SELECT i.unitPriceCents FROM expense_items i
+        JOIN expenses e ON e.id = i.expenseId
+        JOIN establishments est ON est.id = e.establishmentId
+        WHERE i.productId = :productId AND est.name = :establishmentName COLLATE NOCASE
+        ORDER BY e.occurredAt DESC, e.updatedAt DESC, i.position DESC
+        LIMIT 1
+        """,
+    )
+    suspend fun lastPriceAt(productId: String, establishmentName: String): Long?
+
+    /** Último preço unitário pago pelo produto em qualquer estabelecimento. */
+    @Query(
+        """
+        SELECT i.unitPriceCents FROM expense_items i
+        JOIN expenses e ON e.id = i.expenseId
+        WHERE i.productId = :productId
+        ORDER BY e.occurredAt DESC, e.updatedAt DESC, i.position DESC
+        LIMIT 1
+        """,
+    )
+    suspend fun lastPrice(productId: String): Long?
 }

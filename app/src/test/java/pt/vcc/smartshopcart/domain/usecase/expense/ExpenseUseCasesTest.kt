@@ -133,7 +133,7 @@ class ExpenseUseCasesTest {
 
     @Test
     fun `nova despesa a partir de produto usa preco habitual e hora atual`() = runTest {
-        val start = StartExpenseDraftUseCase(repository, TimeProvider { 42L }, IdProvider { "k" })
+        val start = StartExpenseDraftUseCase(repository, SuggestProductPriceUseCase(repository), TimeProvider { 42L }, IdProvider { "k" })
 
         val fromProduct = start(productId = "cafe-expresso")
         assertEquals(42L, fromProduct.occurredAt)
@@ -160,7 +160,7 @@ class ExpenseUseCasesTest {
         assertEquals("cafe", edit.selectedCategoryId)
         assertEquals(listOf(Triple("Café", 2, 80L), Triple("Pastel de nata", 1, 130L)), edit.lines.map { Triple(it.name, it.quantity, it.unitPriceCents) })
 
-        val repeated = RepeatExpenseUseCase(repository, TimeProvider { 9_000L }) { "r${nextId++}" }(saved.expenseId)!!
+        val repeated = RepeatExpenseUseCase(repository, SuggestProductPriceUseCase(repository), TimeProvider { 9_000L }) { "r${nextId++}" }(saved.expenseId)!!
         assertNull(repeated.editingExpenseId)
         assertEquals(9_000L, repeated.occurredAt)
         assertEquals(edit.lines.map { it.name to it.quantity }, repeated.lines.map { it.name to it.quantity })

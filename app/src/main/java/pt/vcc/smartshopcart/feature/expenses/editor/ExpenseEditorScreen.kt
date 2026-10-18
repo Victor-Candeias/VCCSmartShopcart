@@ -82,6 +82,7 @@ import pt.vcc.smartshopcart.core.money.MoneyParser
 import pt.vcc.smartshopcart.core.ui.components.KeypadInput
 import pt.vcc.smartshopcart.core.ui.components.NumericKeypad
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseEditorLine
+import pt.vcc.smartshopcart.domain.model.expense.PriceSuggestionSource
 import pt.vcc.smartshopcart.domain.usecase.expense.ExpenseDateTime
 import pt.vcc.smartshopcart.domain.usecase.expense.ExpenseValidation
 import pt.vcc.smartshopcart.feature.expenses.components.ExpenseProductDialog
@@ -450,7 +451,20 @@ private fun ExpenseLineRow(
                 style = MaterialTheme.typography.titleMedium,
             )
         }
+        line.priceSource?.let { source ->
+            Text(
+                stringResource(R.string.expense_price_suggested, stringResource(source.labelRes())),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
+}
+
+private fun PriceSuggestionSource.labelRes(): Int = when (this) {
+    PriceSuggestionSource.SAME_ESTABLISHMENT -> R.string.expense_price_source_same
+    PriceSuggestionSource.LAST_PAID -> R.string.expense_price_source_last
+    PriceSuggestionSource.CATALOG -> R.string.expense_price_source_catalog
 }
 
 @Composable

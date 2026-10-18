@@ -6,7 +6,8 @@ title: "Sugestão de preços por estabelecimento, último consumo e catálogo"
 created: 2026-10-18
 owner: developer
 priority: medium
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - dr-05-price-suggestions-spec
 track: vcc-despesas-rapidas

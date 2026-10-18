@@ -69,13 +69,16 @@ class SaveExpenseUseCase @Inject constructor(
 /** Nova despesa à hora atual, opcionalmente com uma categoria ou um produto já escolhidos. */
 class StartExpenseDraftUseCase @Inject constructor(
     private val repository: ExpenseRepository,
+    private val suggestPrice: SuggestProductPriceUseCase,
     private val time: TimeProvider,
     private val ids: IdProvider,
 ) {
     suspend operator fun invoke(categoryId: String? = null, productId: String? = null): ExpenseEditorDraft {
         val product = productId?.let { repository.getProduct(it) }
         val draft = ExpenseEditorDraft(occurredAt = time.now(), selectedCategoryId = product?.categoryId ?: categoryId)
-        return if (product == null) draft else draft.addProduct(product, ids.newId(), product.defaultPriceCents)
+        if (product == null) return draft
+        val suggestion = suggestPrice(product.id, null)
+        return draft.addProduct(product, ids.newId(), suggestion.cents, suggestion.source)
     }
 }
 
@@ -94,11 +97,19 @@ class LoadExpenseDraftUseCase @Inject constructor(
  */
 class RepeatExpenseUseCase @Inject constructor(
     private val repository: ExpenseRepository,
+    private val suggestPrice: SuggestProductPriceUseCase,
     private val time: TimeProvider,
     private val ids: IdProvider,
 ) {
-    suspend operator fun invoke(expenseId: String): ExpenseEditorDraft? =
-        repository.getExpense(expenseId)?.toEditorDraft(repository, ids)?.copy(occurredAt = time.now())
+    /** Os preços são sugestões (§7) com recurso ao preço pago na despesa original. */
+    suspend operator fun invoke(expenseId: String): ExpenseEditorDraft? {
+        val original = repository.getExpense(expenseId)?.toEditorDraft(repository, ids) ?: return null
+        val lines = original.lines.map { line ->
+            val suggestion = suggestPrice(line.productId, original.establishmentName, line.unitPriceCents)
+            line.copy(unitPriceCents = suggestion.cents, priceSource = suggestion.source.takeIf { suggestion.cents != null })
+        }
+        return original.copy(occurredAt = time.now(), lines = lines)
+    }
 }
 
 class DeleteExpenseUseCase @Inject constructor(private val repository: ExpenseRepository) {

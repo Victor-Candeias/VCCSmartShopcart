@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +24,8 @@ import pt.vcc.smartshopcart.data.seed.ExpenseCatalogSeeder
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseCategory
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseEditorDraft
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseProduct
+import pt.vcc.smartshopcart.domain.model.expense.PriceSuggestion
+import pt.vcc.smartshopcart.domain.model.expense.PriceSuggestionSource
 import pt.vcc.smartshopcart.domain.repository.ExpenseDraftStore
 import pt.vcc.smartshopcart.domain.repository.ExpenseRepository
 import pt.vcc.smartshopcart.domain.usecase.expense.ExpenseDateTime
@@ -34,6 +38,7 @@ import pt.vcc.smartshopcart.domain.usecase.expense.SaveExpenseProductUseCase
 import pt.vcc.smartshopcart.domain.usecase.expense.SaveExpenseResult
 import pt.vcc.smartshopcart.domain.usecase.expense.SaveExpenseUseCase
 import pt.vcc.smartshopcart.domain.usecase.expense.StartExpenseDraftUseCase
+import pt.vcc.smartshopcart.domain.usecase.expense.SuggestProductPriceUseCase
 import javax.inject.Inject
 
 data class ExpenseEditorUiState(
@@ -66,6 +71,7 @@ class ExpenseEditorViewModel @Inject constructor(
     private val repeatExpense: RepeatExpenseUseCase,
     private val saveExpense: SaveExpenseUseCase,
     private val saveProduct: SaveExpenseProductUseCase,
+    private val suggestPrice: SuggestProductPriceUseCase,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<ExpenseEditorRoute>()
@@ -74,6 +80,7 @@ class ExpenseEditorViewModel @Inject constructor(
     private val query = savedStateHandle.getStateFlow(KEY_QUERY, "")
     private val persistLock = Mutex()
     private var closed = false
+    private var suggestionJob: Job? = null
 
     /** Rascunho guardado de uma edição anterior, à espera de "Continuar" ou "Descartar". */
     private val _pendingDraft = MutableStateFlow<ExpenseEditorDraft?>(null)
@@ -175,7 +182,21 @@ class ExpenseEditorViewModel @Inject constructor(
         }
     }
 
-    fun setEstablishment(name: String) = update { it.copy(establishmentName = name.take(MAX_TEXT)) }
+    fun setEstablishment(name: String) {
+        update { it.copy(establishmentName = name.take(MAX_TEXT)) }
+        refreshSuggestions()
+    }
+
+    /** Recalcula os preços ainda sugeridos para o estabelecimento atual (com atraso enquanto se escreve). */
+    private fun refreshSuggestions() {
+        suggestionJob?.cancel()
+        suggestionJob = viewModelScope.launch {
+            delay(SUGGESTION_DELAY_MS)
+            val current = draft.value ?: return@launch
+            val suggestions = runCatching { suggestPrice.suggestionsFor(current) }.getOrNull() ?: return@launch
+            if (suggestions.isNotEmpty()) update { it.applySuggestions(suggestions) }
+        }
+    }
 
     fun setNotes(text: String) = update { it.copy(notes = text.take(MAX_TEXT)) }
 
@@ -189,7 +210,14 @@ class ExpenseEditorViewModel @Inject constructor(
         savedStateHandle[KEY_QUERY] = text
     }
 
-    fun addProduct(product: ExpenseProduct) = update { it.addProduct(product, ids.newId(), product.defaultPriceCents) }
+    fun addProduct(product: ExpenseProduct) {
+        viewModelScope.launch {
+            val place = draft.value?.establishmentName
+            val suggestion = runCatching { suggestPrice(product.id, place) }
+                .getOrDefault(PriceSuggestion(product.defaultPriceCents, PriceSuggestionSource.CATALOG))
+            update { it.addProduct(product, ids.newId(), suggestion.cents, suggestion.source) }
+        }
+    }
 
     fun changeQuantity(lineKey: String, delta: Int) = update { it.changeQuantity(lineKey, delta) }
 
@@ -246,5 +274,6 @@ class ExpenseEditorViewModel @Inject constructor(
         const val KEY_STARTED = "started"
         const val MAX_SUGGESTIONS = 5
         const val MAX_TEXT = 120
+        const val SUGGESTION_DELAY_MS = 400L
     }
 }

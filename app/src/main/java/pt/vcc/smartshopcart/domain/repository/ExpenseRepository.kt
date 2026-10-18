@@ -30,6 +30,8 @@ interface ExpenseRepository {
 
     suspend fun deleteExpense(id: String)
 
+    /** Último preço unitário pago pelo produto (no estabelecimento indicado, se não for nulo). */
+    suspend fun lastPaidPrice(productId: String, establishmentName: String? = null): Long?
     suspend fun getProduct(id: String): ExpenseProduct?
 
     suspend fun upsertProduct(product: ExpenseProduct)

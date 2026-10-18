@@ -128,6 +128,9 @@ class RoomExpenseRepository @Inject constructor(
 
     override suspend fun deleteExpense(id: String) = dao.deleteExpense(id)
 
+    override suspend fun lastPaidPrice(productId: String, establishmentName: String?): Long? =
+        if (establishmentName == null) dao.lastPrice(productId) else dao.lastPriceAt(productId, establishmentName)
+
     override suspend fun getProduct(id: String): ExpenseProduct? = dao.getProduct(id)?.toDomain()
 
     override suspend fun upsertProduct(product: ExpenseProduct) = dao.upsertProduct(product.toEntity())
