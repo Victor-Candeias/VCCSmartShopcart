@@ -146,6 +146,51 @@ class ExpenseUseCasesTest {
     }
 
     @Test
+    fun `editar carrega a despesa mantendo data e repetir usa a data atual`() = runTest {
+        val save = SaveExpenseUseCase(repository, drafts)
+        val original = ExpenseEditorDraft(occurredAt = 5_000, establishmentName = "Café Central", notes = "almoço")
+            .addProduct(cafe, "l1", 80).changeQuantity("l1", 1).addProduct(nata, "l2", 130)
+        val saved = save(original) as SaveExpenseResult.Saved
+
+        val edit = LoadExpenseDraftUseCase(repository) { "k${nextId++}" }(saved.expenseId)!!
+        assertEquals(saved.expenseId, edit.editingExpenseId)
+        assertEquals(5_000L, edit.occurredAt)
+        assertEquals("Café Central", edit.establishmentName)
+        assertEquals("almoço", edit.notes)
+        assertEquals("cafe", edit.selectedCategoryId)
+        assertEquals(listOf(Triple("Café", 2, 80L), Triple("Pastel de nata", 1, 130L)), edit.lines.map { Triple(it.name, it.quantity, it.unitPriceCents) })
+
+        val repeated = RepeatExpenseUseCase(repository, TimeProvider { 9_000L }) { "r${nextId++}" }(saved.expenseId)!!
+        assertNull(repeated.editingExpenseId)
+        assertEquals(9_000L, repeated.occurredAt)
+        assertEquals(edit.lines.map { it.name to it.quantity }, repeated.lines.map { it.name to it.quantity })
+
+        val second = save(repeated) as SaveExpenseResult.Saved
+        assertTrue(second.expenseId != saved.expenseId)
+        assertEquals(2, repository.observeExpenses().first().size)
+
+        assertNull(LoadExpenseDraftUseCase(repository) { "x" }("inexistente"))
+    }
+
+    @Test
+    fun `eliminar remove a despesa e filtros do historico`() = runTest {
+        val save = SaveExpenseUseCase(repository, drafts)
+        val a = save(ExpenseEditorDraft(occurredAt = 1, establishmentName = "Pastelaria").addProduct(cafe, "a", 80)) as SaveExpenseResult.Saved
+        save(ExpenseEditorDraft(occurredAt = 2, establishmentName = "Bar").addProduct(nata, "b", 130))
+        save(ExpenseEditorDraft(occurredAt = 3).copy(lines = listOf(pt.vcc.smartshopcart.domain.model.expense.ExpenseEditorLine("c", null, "Livre", 1, 50))))
+
+        val all = repository.observeExpenses().first()
+        assertEquals(listOf("Bar", "Pastelaria"), ExpenseHistoryFilter.establishments(all))
+        assertEquals(2, ExpenseHistoryFilter.apply(all, "cafe", null).size)
+        assertEquals(1, ExpenseHistoryFilter.apply(all, "cafe", "pastelaria").size)
+        assertEquals(3, ExpenseHistoryFilter.apply(all, null, null).size)
+
+        DeleteExpenseUseCase(repository)(a.expenseId)
+        assertNull(repository.getExpense(a.expenseId))
+        assertEquals(2, repository.observeExpenses().first().size)
+    }
+
+    @Test
     fun `alterar data mantem a hora e alterar hora mantem a data`() {
         val zone = ZoneId.of("Europe/Lisbon")
         val occurredAt = LocalDateTime.of(2026, 7, 10, 9, 30).atZone(zone).toInstant().toEpochMilli()

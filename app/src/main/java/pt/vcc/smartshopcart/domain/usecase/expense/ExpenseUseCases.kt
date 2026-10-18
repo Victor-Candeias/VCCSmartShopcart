@@ -2,9 +2,12 @@ package pt.vcc.smartshopcart.domain.usecase.expense
 
 import pt.vcc.smartshopcart.core.common.IdProvider
 import pt.vcc.smartshopcart.core.common.TimeProvider
+import pt.vcc.smartshopcart.domain.model.expense.ExpenseDetails
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseDraft
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseDraftItem
 import pt.vcc.smartshopcart.domain.model.expense.ExpenseEditorDraft
+import pt.vcc.smartshopcart.domain.model.expense.ExpenseEditorLine
+import pt.vcc.smartshopcart.domain.model.expense.ExpenseSummary
 import pt.vcc.smartshopcart.domain.repository.ExpenseDraftStore
 import pt.vcc.smartshopcart.domain.repository.ExpenseRepository
 import java.time.Instant
@@ -74,6 +77,56 @@ class StartExpenseDraftUseCase @Inject constructor(
         val draft = ExpenseEditorDraft(occurredAt = time.now(), selectedCategoryId = product?.categoryId ?: categoryId)
         return if (product == null) draft else draft.addProduct(product, ids.newId(), product.defaultPriceCents)
     }
+}
+
+/** Rascunho de edição de uma despesa guardada: mantém data/hora, estabelecimento, itens e notas. */
+class LoadExpenseDraftUseCase @Inject constructor(
+    private val repository: ExpenseRepository,
+    private val ids: IdProvider,
+) {
+    suspend operator fun invoke(expenseId: String): ExpenseEditorDraft? =
+        repository.getExpense(expenseId)?.toEditorDraft(repository, ids)?.copy(editingExpenseId = expenseId)
+}
+
+/**
+ * "Repetir despesa": novo rascunho com a data/hora atuais e os mesmos produtos e quantidades;
+ * os preços ficam editáveis antes de guardar.
+ */
+class RepeatExpenseUseCase @Inject constructor(
+    private val repository: ExpenseRepository,
+    private val time: TimeProvider,
+    private val ids: IdProvider,
+) {
+    suspend operator fun invoke(expenseId: String): ExpenseEditorDraft? =
+        repository.getExpense(expenseId)?.toEditorDraft(repository, ids)?.copy(occurredAt = time.now())
+}
+
+class DeleteExpenseUseCase @Inject constructor(private val repository: ExpenseRepository) {
+    suspend operator fun invoke(expenseId: String) = repository.deleteExpense(expenseId)
+}
+
+private suspend fun ExpenseDetails.toEditorDraft(repository: ExpenseRepository, ids: IdProvider): ExpenseEditorDraft {
+    val firstCategory = items.firstNotNullOfOrNull { item -> item.productId?.let { repository.getProduct(it)?.categoryId } }
+    return ExpenseEditorDraft(
+        establishmentName = establishment?.name.orEmpty(),
+        occurredAt = expense.occurredAt,
+        lines = items.map { ExpenseEditorLine(ids.newId(), it.productId, it.nameSnapshot, it.quantity, it.unitPriceCents) },
+        notes = expense.notes.orEmpty(),
+        selectedCategoryId = firstCategory,
+    )
+}
+
+/** Filtros do histórico de despesas (§4.4). */
+object ExpenseHistoryFilter {
+    fun apply(expenses: List<ExpenseSummary>, categoryId: String?, establishment: String?): List<ExpenseSummary> =
+        expenses.filter { summary ->
+            (categoryId == null || categoryId in summary.categoryIds) &&
+                (establishment == null || summary.establishmentName.equals(establishment, ignoreCase = true))
+        }
+
+    /** Estabelecimentos distintos presentes no histórico, por ordem alfabética. */
+    fun establishments(expenses: List<ExpenseSummary>): List<String> =
+        expenses.mapNotNull { it.establishmentName }.distinctBy { it.lowercase() }.sortedBy { ExpenseSearch.normalize(it) }
 }
 
 /** Ajusta data e hora de `occurredAt` (epoch millis UTC) no fuso local. */

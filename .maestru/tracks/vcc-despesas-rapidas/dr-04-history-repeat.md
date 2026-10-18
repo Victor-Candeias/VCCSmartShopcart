@@ -6,7 +6,8 @@ title: "Histórico de despesas: ver, editar, eliminar e repetir"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - dr-04-history-repeat-spec
 track: vcc-despesas-rapidas

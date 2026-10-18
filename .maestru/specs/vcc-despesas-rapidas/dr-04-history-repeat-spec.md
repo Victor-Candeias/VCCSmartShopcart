@@ -17,10 +17,10 @@ Histórico local das despesas guardadas (§4.4). Editar reabre o editor com o ra
 
 ## Implementation
 
-- `UpdateExpenseUseCase`, `DeleteExpenseUseCase`, `RepeatExpenseUseCase` (devolve `ExpenseEditorDraft`).
-- `ExpenseHistoryScreen` + ViewModel: cartões com data/hora, estabelecimento, categorias, nº de itens e total; filtro por categoria.
+- `LoadExpenseDraftUseCase` (rascunho de edição com `editingExpenseId`; a gravação usa o `SaveExpenseUseCase` do dr-03), `DeleteExpenseUseCase`, `RepeatExpenseUseCase` (devolve `ExpenseEditorDraft` com a data atual) e `ExpenseHistoryFilter` (categoria e estabelecimento).
+- `ExpenseHistoryScreen` + ViewModel: cartões com data/hora, estabelecimento, categorias, nº de itens e total, agrupados por dia; filtros por categoria e estabelecimento; menu por cartão com Ver, Editar, Repetir e Eliminar.
 - `ExpenseDetailScreen` + ViewModel: itens com quantidade × preço = subtotal, total, ações Editar, Repetir e Eliminar (confirmação).
-- Editor: modo edição (`expenseId`) e modo repetição (`repeatFromId`).
+- Editor: modo edição (`expenseId`) e modo repetição (`repeatFromId`); um rascunho guardado da mesma edição é retomado sem perguntar.
 
 ## Impacted Files
 

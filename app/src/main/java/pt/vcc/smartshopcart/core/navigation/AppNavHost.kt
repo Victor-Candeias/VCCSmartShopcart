@@ -31,6 +31,8 @@ import pt.vcc.smartshopcart.R
 import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
 import pt.vcc.smartshopcart.feature.expenses.catalog.ExpenseCatalogScreen
 import pt.vcc.smartshopcart.feature.expenses.editor.ExpenseEditorScreen
+import pt.vcc.smartshopcart.feature.expenses.history.ExpenseDetailScreen
+import pt.vcc.smartshopcart.feature.expenses.history.ExpenseHistoryScreen
 import pt.vcc.smartshopcart.feature.expenses.home.ExpensesHomeScreen
 import pt.vcc.smartshopcart.feature.history.HistoryDetailScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
@@ -151,7 +153,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                         navController.navigate(ExpenseEditorRoute(categoryId = categoryId, productId = productId))
                     },
                     onResumeDraft = { navController.navigate(ExpenseEditorRoute(resumeDraft = true)) },
-                    onOpenHistory = null,
+                    onOpenHistory = { navController.navigate(ExpenseHistoryRoute) },
                     onOpenCatalog = { navController.navigate(ExpenseCatalogRoute) },
                 )
             }
@@ -159,6 +161,21 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 ExpenseEditorScreen(
                     onBack = { navController.popBackStack() },
                     onFinished = navController::closeExpenseEditor,
+                )
+            }
+            composable<ExpenseHistoryRoute> {
+                ExpenseHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenExpense = { navController.navigate(ExpenseDetailRoute(it)) },
+                    onEditExpense = { navController.navigate(ExpenseEditorRoute(expenseId = it)) },
+                    onRepeatExpense = { navController.navigate(ExpenseEditorRoute(repeatFromId = it)) },
+                )
+            }
+            composable<ExpenseDetailRoute> {
+                ExpenseDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(ExpenseEditorRoute(expenseId = it)) },
+                    onRepeat = { navController.navigate(ExpenseEditorRoute(repeatFromId = it)) },
                 )
             }
         }

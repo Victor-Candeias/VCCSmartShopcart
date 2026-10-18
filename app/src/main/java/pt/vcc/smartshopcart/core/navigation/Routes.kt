@@ -45,3 +45,7 @@ data class ExpenseEditorRoute(
 )
 
 @Serializable data object ExpenseCatalogRoute
+
+@Serializable data object ExpenseHistoryRoute
+
+@Serializable data class ExpenseDetailRoute(val expenseId: String)

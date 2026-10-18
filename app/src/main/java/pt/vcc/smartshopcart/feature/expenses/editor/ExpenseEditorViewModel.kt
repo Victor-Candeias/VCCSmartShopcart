@@ -28,6 +28,8 @@ import pt.vcc.smartshopcart.domain.usecase.expense.ExpenseDateTime
 import pt.vcc.smartshopcart.domain.usecase.expense.ExpenseSearch
 import pt.vcc.smartshopcart.domain.usecase.expense.ExpenseValidation
 import pt.vcc.smartshopcart.domain.usecase.expense.GetExpenseCatalogUseCase
+import pt.vcc.smartshopcart.domain.usecase.expense.LoadExpenseDraftUseCase
+import pt.vcc.smartshopcart.domain.usecase.expense.RepeatExpenseUseCase
 import pt.vcc.smartshopcart.domain.usecase.expense.SaveExpenseProductUseCase
 import pt.vcc.smartshopcart.domain.usecase.expense.SaveExpenseResult
 import pt.vcc.smartshopcart.domain.usecase.expense.SaveExpenseUseCase
@@ -60,6 +62,8 @@ class ExpenseEditorViewModel @Inject constructor(
     getCatalog: GetExpenseCatalogUseCase,
     private val seeder: ExpenseCatalogSeeder,
     private val startDraft: StartExpenseDraftUseCase,
+    private val loadDraft: LoadExpenseDraftUseCase,
+    private val repeatExpense: RepeatExpenseUseCase,
     private val saveExpense: SaveExpenseUseCase,
     private val saveProduct: SaveExpenseProductUseCase,
 ) : ViewModel() {
@@ -78,8 +82,6 @@ class ExpenseEditorViewModel @Inject constructor(
 
     private val _events = Channel<ExpenseEditorEvent>(Channel.BUFFERED)
     val events: Flow<ExpenseEditorEvent> = _events.receiveAsFlow()
-
-    val isEditing: Boolean get() = route.expenseId != null
 
     val state: StateFlow<ExpenseEditorUiState?> = combine(
         draft,
@@ -115,18 +117,30 @@ class ExpenseEditorViewModel @Inject constructor(
             runCatching { seeder.seedIfNeeded() }
             val stored = drafts.get()?.takeUnless { it.isBlank }
             val restarting = savedStateHandle.get<Boolean>(KEY_STARTED) == true
+            val sameEdit = stored != null && route.expenseId != null && stored.editingExpenseId == route.expenseId
             when {
-                (route.resumeDraft || restarting) && stored != null -> activate(stored)
-                stored != null -> {
-                    freshDraft = initialDraft()
-                    _pendingDraft.value = stored
+                (route.resumeDraft || restarting || sameEdit) && stored != null -> activate(stored)
+                else -> {
+                    val initial = runCatching { initialDraft() }.getOrNull()
+                    if (initial == null) {
+                        _events.send(ExpenseEditorEvent.Closed)
+                    } else if (stored != null) {
+                        freshDraft = initial
+                        _pendingDraft.value = stored
+                    } else {
+                        activate(initial)
+                    }
                 }
-                else -> activate(initialDraft())
             }
         }
     }
 
-    private suspend fun initialDraft(): ExpenseEditorDraft = startDraft(route.categoryId, route.productId)
+    /** Nova despesa, edição de uma existente (`expenseId`) ou repetição (`repeatFromId`). */
+    private suspend fun initialDraft(): ExpenseEditorDraft? = when {
+        route.expenseId != null -> loadDraft(route.expenseId)
+        route.repeatFromId != null -> repeatExpense(route.repeatFromId)
+        else -> startDraft(route.categoryId, route.productId)
+    }
 
     private fun activate(value: ExpenseEditorDraft) {
         _pendingDraft.value = null

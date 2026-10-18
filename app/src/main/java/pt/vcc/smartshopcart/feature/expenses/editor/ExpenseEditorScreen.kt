@@ -129,7 +129,7 @@ fun ExpenseEditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (viewModel.isEditing) R.string.expense_edit else R.string.expense_new)) },
+                title = { Text(stringResource(if ((state?.draft?.editingExpenseId != null)) R.string.expense_edit else R.string.expense_new)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -227,7 +227,7 @@ fun ExpenseEditorScreen(
             onDismissRequest = { confirmCancel = false },
             title = { Text(stringResource(R.string.expense_cancel_title)) },
             text = {
-                Text(stringResource(if (viewModel.isEditing) R.string.expense_cancel_edit_text else R.string.expense_cancel_text))
+                Text(stringResource(if ((state?.draft?.editingExpenseId != null)) R.string.expense_cancel_edit_text else R.string.expense_cancel_text))
             },
             confirmButton = {
                 TextButton(onClick = {

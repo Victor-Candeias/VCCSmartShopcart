@@ -313,4 +313,21 @@
     <string name="expense_cancel_title">Cancelar despesa?</string>
     <string name="expense_cancel_text">Os produtos escolhidos serão descartados.</string>
     <string name="expense_cancel_edit_text">As alterações não guardadas serão descartadas. A despesa original mantém-se.</string>
+
+    <!-- Despesas rápidas: histórico -->
+    <string name="expense_history_empty">Ainda não há despesas registadas.</string>
+    <string name="expense_history_filtered_empty">Nenhuma despesa com estes filtros.</string>
+    <string name="expense_establishment_all">Todos os locais</string>
+    <string name="expense_no_establishment">Sem estabelecimento</string>
+    <string name="expense_detail_title">Despesa</string>
+    <string name="expense_view">Ver</string>
+    <string name="expense_edit_action">Editar</string>
+    <string name="expense_repeat">Repetir despesa</string>
+    <string name="expense_delete">Eliminar</string>
+    <string name="expense_delete_title">Eliminar despesa?</string>
+    <string name="expense_delete_text">A despesa e os respetivos itens serão eliminados. Esta ação não pode ser anulada.</string>
+    <string name="expense_delete_failed">Não foi possível eliminar a despesa.</string>
+    <string name="expense_missing">Esta despesa já não existe.</string>
+    <string name="expense_item_line">%1$d × %2$s</string>
+    <string name="expense_actions_for">Ações da despesa de %1$s</string>
 </resources>
