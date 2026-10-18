@@ -49,3 +49,10 @@ data class ExpenseEditorRoute(
 @Serializable data object ExpenseHistoryRoute
 
 @Serializable data class ExpenseDetailRoute(val expenseId: String)
+
+// Relatórios
+
+@Serializable data object ReportsRoute
+
+/** Detalhe de uma secção do relatório; [kind] é o nome de um `ReportDetailKind`. */
+@Serializable data class ReportDetailRoute(val kind: String)

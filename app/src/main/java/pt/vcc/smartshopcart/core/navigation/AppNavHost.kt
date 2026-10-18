@@ -14,6 +14,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.toRoute
+import pt.vcc.smartshopcart.feature.reports.ReportDetailKind
+import pt.vcc.smartshopcart.feature.reports.ReportDetailScreen
+import pt.vcc.smartshopcart.feature.reports.ReportsHomeScreen
+import pt.vcc.smartshopcart.feature.reports.ReportsViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -62,6 +69,9 @@ private val topLevelDestinations = listOf(
     TopLevelDestination(HistoryRoute, HistoryRoute::class, R.string.nav_history) {
         painterResource(R.drawable.ic_history)
     },
+    TopLevelDestination(ReportsRoute, ReportsRoute::class, R.string.nav_reports) {
+        painterResource(R.drawable.ic_reports)
+    },
     TopLevelDestination(SettingsRoute, SettingsRoute::class, R.string.nav_settings) {
         rememberVectorPainter(Icons.Filled.Settings)
     },
@@ -100,6 +110,21 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onOpenSession = navController::navigateToSession,
                     onOpenLists = { navController.navigateTopLevel(ListsRoute) },
                     onOpenExpenses = { navController.navigate(ExpensesHomeRoute) },
+                    onOpenReports = { navController.navigateTopLevel(ReportsRoute) },
+                )
+            }
+            composable<ReportsRoute> {
+                ReportsHomeScreen(
+                    onOpenDetail = { kind -> navController.navigate(ReportDetailRoute(kind.name)) },
+                    viewModel = hiltViewModel(),
+                )
+            }
+            composable<ReportDetailRoute> { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry<ReportsRoute>() }
+                ReportDetailScreen(
+                    kind = ReportDetailKind.valueOf(entry.toRoute<ReportDetailRoute>().kind),
+                    onBack = { navController.popBackStack() },
+                    viewModel = hiltViewModel<ReportsViewModel>(parent),
                 )
             }
             composable<ListsRoute> {

@@ -36,7 +36,7 @@ Quarto módulo «Relatórios» acessível pela barra de navegação: filtros rá
 
 Decisão: gráficos em `Canvas` Compose (permitido pelo §2) para não acrescentar dependências.
 
-- [ ] `ReportPeriodTest` e `ReportsViewModelTest` verdes; APK debug compila
+- [x] Testes de períodos (`ReportSeriesTest`, rp-01) e `ReportsViewModelTest` verdes; APK debug compila
 
 ## Impacted Files
 
@@ -47,4 +47,4 @@ Decisão: gráficos em `Canvas` Compose (permitido pelo §2) para não acrescent
 | `core/navigation/Routes.kt`, `AppNavHost.kt` | Modify | Rotas `ReportsRoute`/`ReportDetailRoute` |
 | `feature/home/HomeScreen.kt` | Modify | Entrada «Relatórios» |
 | `res/drawable/ic_reports.xml`, `res/values/strings.xml` | Create/Modify | Ícone e textos |
-| `test/.../ReportPeriodTest.kt`, `ReportsViewModelTest.kt` | Create | Testes |
+| `test/.../ReportsViewModelTest.kt` | Create | Testes (períodos já cobertos em `ReportSeriesTest`) |

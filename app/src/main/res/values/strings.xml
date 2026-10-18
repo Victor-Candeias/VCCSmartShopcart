@@ -336,4 +336,77 @@
     <string name="expense_price_source_same">último preço aqui</string>
     <string name="expense_price_source_last">último preço pago</string>
     <string name="expense_price_source_catalog">preço habitual</string>
+
+    <!-- Relatórios -->
+    <string name="nav_reports">Relatórios</string>
+    <string name="home_reports">Relatórios</string>
+    <string name="home_reports_hint">Gráficos, totais por categoria e exportações</string>
+    <string name="reports_title">Relatórios</string>
+    <string name="reports_filters">Filtros</string>
+    <string name="reports_period_today">Hoje</string>
+    <string name="reports_period_last_7_days">7 dias</string>
+    <string name="reports_period_this_month">Este mês</string>
+    <string name="reports_period_previous_month">Mês anterior</string>
+    <string name="reports_period_this_year">Este ano</string>
+    <string name="reports_period_custom">Personalizado</string>
+    <string name="reports_mode_all">Tudo</string>
+    <string name="reports_mode_calculator">Calculadora</string>
+    <string name="reports_mode_planned">Listas</string>
+    <string name="reports_mode_expense">Despesas</string>
+    <string name="reports_period_range">%1$s – %2$s</string>
+    <string name="reports_kpi_total">Total</string>
+    <string name="reports_kpi_transactions">Transações</string>
+    <string name="reports_kpi_average">Média por transação</string>
+    <string name="reports_kpi_items">Artigos</string>
+    <string name="reports_comparison">%1$s (%2$s) face a %3$s</string>
+    <string name="reports_comparison_no_previous">Sem gastos no período anterior (%1$s).</string>
+    <string name="reports_comparison_incomplete">Período em curso: os valores ainda podem mudar.</string>
+    <string name="reports_data_warning">Atenção: %1$d transação(ões) sem artigos e %2$d com total diferente da soma dos artigos. Os relatórios usam a soma dos artigos.</string>
+    <string name="reports_empty">Sem compras concluídas nem despesas neste período.</string>
+    <string name="reports_empty_filtered">Nenhum movimento corresponde aos filtros escolhidos.</string>
+    <string name="reports_error">Não foi possível gerar o relatório.\n%1$s</string>
+    <string name="action_retry">Tentar novamente</string>
+    <string name="reports_clear_filters">Limpar filtros</string>
+    <plurals name="reports_active_filters">
+        <item quantity="one">%d filtro ativo</item>
+        <item quantity="other">%d filtros ativos</item>
+    </plurals>
+    <string name="reports_section_timeline">Evolução</string>
+    <string name="reports_section_categories">Categorias</string>
+    <string name="reports_section_establishments">Estabelecimentos</string>
+    <string name="reports_section_products">Produtos</string>
+    <string name="reports_section_budget">Orçamento vs. realizado</string>
+    <string name="reports_section_transactions">Transações</string>
+    <string name="reports_see_detail">Ver detalhe</string>
+    <string name="reports_chart_timeline_desc">Gráfico de linhas com o total por período, de %1$s a %2$s. Máximo de %3$s em %4$s.</string>
+    <string name="reports_chart_categories_desc">Gráfico circular por categoria: %1$s.</string>
+    <string name="reports_chart_budget_desc">Gráfico de barras com orçamento e realizado: %1$s.</string>
+    <string name="reports_budget">Orçamento</string>
+    <string name="reports_spent">Realizado</string>
+    <string name="reports_budget_over">Excedido em %1$s</string>
+    <string name="reports_budget_under">Sobrou %1$s</string>
+    <string name="reports_no_budgets">Nenhuma compra concluída com orçamento neste período.</string>
+    <string name="reports_budget_filtered">O orçamento refere-se à compra inteira e não é mostrado com filtros de categoria ou produto.</string>
+    <string name="reports_granularity_day">Dia</string>
+    <string name="reports_granularity_week">Semana</string>
+    <string name="reports_granularity_month">Mês</string>
+    <string name="reports_week_of">Semana de %1$s</string>
+    <string name="reports_share_line">%1$s · %2$s</string>
+    <plurals name="reports_transactions_count">
+        <item quantity="one">%d transação</item>
+        <item quantity="other">%d transações</item>
+    </plurals>
+    <plurals name="reports_frequency">
+        <item quantity="one">Comprado %d vez</item>
+        <item quantity="other">Comprado %d vezes</item>
+    </plurals>
+    <string name="reports_custom_range_title">Escolher período</string>
+    <string name="reports_custom_range_pick">Escolher datas…</string>
+    <string name="reports_apply">Aplicar</string>
+    <string name="reports_products_hint">Os 50 produtos com mais gasto no período.</string>
+    <string name="reports_filter_none">Sem opções neste período.</string>
+    <plurals name="reports_items_count">
+        <item quantity="one">%d artigo</item>
+        <item quantity="other">%d artigos</item>
+    </plurals>
 </resources>

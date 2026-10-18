@@ -8,7 +8,8 @@ owner: developer
 priority: high
 specs:
   - rp-02-dashboard-spec
-status: backlog
+status: done
+completed: 2026-10-19
 track: vcc-relatorios
 blocked-by:
   - rp-01-data-model

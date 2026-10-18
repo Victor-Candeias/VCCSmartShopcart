@@ -35,6 +35,7 @@ fun HomeScreen(
     onOpenSession: (sessionId: String, mode: SessionMode) -> Unit,
     onOpenLists: () -> Unit,
     onOpenExpenses: () -> Unit,
+    onOpenReports: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val active by viewModel.activeSession.collectAsStateWithLifecycle()
@@ -63,6 +64,7 @@ fun HomeScreen(
         }
         HomeEntry(stringResource(R.string.home_lists), stringResource(R.string.home_lists_hint), onOpenLists)
         HomeEntry(stringResource(R.string.home_expenses), stringResource(R.string.home_expenses_hint), onOpenExpenses)
+        HomeEntry(stringResource(R.string.home_reports), stringResource(R.string.home_reports_hint), onOpenReports)
     }
 
     if (showStartDialog) {
