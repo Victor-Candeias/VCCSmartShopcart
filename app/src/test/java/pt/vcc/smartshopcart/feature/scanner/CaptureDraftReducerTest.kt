@@ -105,4 +105,26 @@ class CaptureDraftReducerTest {
     fun `fotografia sem precos nao cria rascunho`() {
         assertNull(CaptureDraftReducer.withPrices(null, PriceCandidateParser.parse(listOf(OcrLine("Nutella 400 g"))), null))
     }
+
+    @Test
+    fun `nome fotografado preenche o nome e mantem o preco`() {
+        val withPrice = CaptureDraftReducer.withPrices(null, label, null)
+        val draft = CaptureDraftReducer.withNames(withPrice, listOf("Arroz carolino", "Cigala"), null)!!
+
+        assertEquals("Arroz carolino", draft.name)
+        assertEquals(listOf("Arroz carolino", "Cigala"), draft.nameCandidates)
+        assertEquals(149L, draft.priceCents)
+        assertNull(CaptureDraftReducer.withNames(withPrice, emptyList(), null))
+    }
+
+    @Test
+    fun `preco escrito a mao aceita decimais e substitui o do OCR`() {
+        val withPrice = CaptureDraftReducer.withPrices(CaptureDraftReducer.withProduct(null, nutella, null), label, null)
+        val draft = CaptureDraftReducer.withManualPrice(withPrice, 235L, null)
+
+        assertEquals("2,35", draft.price)
+        assertEquals(235L, draft.priceCents)
+        assertEquals(false, draft.priceFromOcr)
+        assertEquals("3017620422003", draft.barcode)
+    }
 }

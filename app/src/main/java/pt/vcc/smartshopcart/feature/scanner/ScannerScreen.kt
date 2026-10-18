@@ -64,7 +64,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -72,6 +74,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -80,6 +83,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pt.vcc.smartshopcart.R
 import pt.vcc.smartshopcart.core.money.MoneyFormatter
+import pt.vcc.smartshopcart.core.money.MoneyParser
 import pt.vcc.smartshopcart.core.ui.components.AmountField
 import pt.vcc.smartshopcart.core.ui.components.NameField
 import pt.vcc.smartshopcart.core.ui.components.QuantityField
@@ -102,6 +106,7 @@ fun ScannerScreen(
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
     var manualEntry by rememberSaveable { mutableStateOf(false) }
+    var manualPrice by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -154,7 +159,13 @@ fun ScannerScreen(
                 onPhotoRecognized = { viewModel.onPhotoRecognized(it.barcodes, it.lines) },
                 onPhotoFailed = viewModel::onPhotoFailed,
                 onReview = viewModel::onReviewDraft,
-                onManualEntry = { manualEntry = true },
+                onManualEntry = {
+                    when (state.target) {
+                        CaptureTarget.PRODUCT -> manualEntry = true
+                        CaptureTarget.PRICE -> manualPrice = true
+                        CaptureTarget.NAME -> viewModel.onReviewDraft()
+                    }
+                },
                 modifier = modifier,
             )
         }
@@ -166,6 +177,15 @@ fun ScannerScreen(
             onConfirm = {
                 manualEntry = false
                 viewModel.onManualCode(it)
+            },
+        )
+    }
+    if (manualPrice) {
+        ManualPriceDialog(
+            onDismiss = { manualPrice = false },
+            onConfirm = {
+                manualPrice = false
+                viewModel.onManualPrice(it)
             },
         )
     }
@@ -206,31 +226,38 @@ private fun ScanningContent(
             launcher.launch(Manifest.permission.CAMERA)
         }
     }
-    val imageCapture = remember {
-        ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build()
+    val textOnly = state.target != CaptureTarget.PRODUCT
+    val imageCapture = remember(textOnly) {
+        ImageCapture.Builder()
+            .setCaptureMode(if (textOnly) ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY else ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
     }
     val recognizer = remember { PhotoRecognizer() }
     DisposableEffect(recognizer) { onDispose { recognizer.close() } }
     val scope = rememberCoroutineScope()
     var cameraError by remember { mutableStateOf(false) }
+    var viewSize by remember { mutableStateOf(IntSize.Zero) }
+    var frameSize by remember { mutableStateOf(IntSize.Zero) }
     val draft = state.draft
 
     Column(modifier.fillMaxSize()) {
-        Box(Modifier.weight(1f).fillMaxWidth(), Alignment.Center) {
+        Box(Modifier.weight(1f).fillMaxWidth().onSizeChanged { viewSize = it }, Alignment.Center) {
             if (hasPermission) {
                 if (cameraError) {
                     Text(stringResource(R.string.scanner_camera_unavailable), Modifier.padding(24.dp), textAlign = TextAlign.Center)
                 } else {
                     CameraPreview(
                         imageCapture = imageCapture,
+                        analyzeBarcodes = !textOnly,
                         onCodes = onCodes,
                         onError = { cameraError = true },
                         modifier = Modifier.fillMaxSize(),
                     )
                     Box(
                         Modifier
-                            .fillMaxWidth(0.8f)
-                            .height(160.dp)
+                            .fillMaxWidth(if (textOnly) 0.9f else 0.8f)
+                            .height(if (textOnly) 200.dp else 160.dp)
+                            .onSizeChanged { frameSize = it }
                             .border(BorderStroke(3.dp, Color.White), RoundedCornerShape(12.dp)),
                     )
                     if (state.recognizing) CircularProgressIndicator()
@@ -241,6 +268,12 @@ private fun ScanningContent(
                     ) {
                         val message = when {
                             state.recognizing -> stringResource(R.string.scanner_recognizing)
+                            state.target == CaptureTarget.NAME -> stringResource(
+                                if (state.nothingRecognized) R.string.scanner_nothing_name else R.string.scanner_hint_name,
+                            )
+                            state.target == CaptureTarget.PRICE -> stringResource(
+                                if (state.nothingRecognized) R.string.scanner_nothing_price else R.string.scanner_hint_price,
+                            )
                             state.multipleCodes -> stringResource(R.string.scanner_multiple)
                             state.nothingRecognized -> stringResource(R.string.scanner_nothing)
                             draft?.barcode != null ->
@@ -282,17 +315,33 @@ private fun ScanningContent(
                 onClick = onManualEntry,
                 enabled = !state.recognizing,
                 modifier = Modifier.weight(1f).height(56.dp),
-            ) { Text(stringResource(R.string.scanner_manual)) }
+            ) {
+                Text(
+                    stringResource(
+                        when (state.target) {
+                            CaptureTarget.PRODUCT -> R.string.scanner_manual
+                            CaptureTarget.PRICE -> R.string.scanner_manual_price
+                            CaptureTarget.NAME -> R.string.scanner_type_name
+                        },
+                    ),
+                    textAlign = TextAlign.Center,
+                )
+            }
             Button(
                 onClick = {
                     onPhotoStarted()
+                    val frame = if (textOnly) {
+                        FrameCrop(viewSize.width, viewSize.height, frameSize.width, frameSize.height)
+                    } else {
+                        null
+                    }
                     imageCapture.takePicture(
                         ContextCompat.getMainExecutor(context),
                         object : ImageCapture.OnImageCapturedCallback() {
                             override fun onCaptureSuccess(image: ImageProxy) {
                                 scope.launch {
                                     try {
-                                        onPhotoRecognized(recognizer.recognize(image))
+                                        onPhotoRecognized(recognizer.recognize(image, readBarcodes = !textOnly, frame = frame))
                                     } catch (e: CancellationException) {
                                         throw e
                                     } catch (_: Exception) {
@@ -315,6 +364,7 @@ private fun ScanningContent(
 @Composable
 private fun CameraPreview(
     imageCapture: ImageCapture,
+    analyzeBarcodes: Boolean,
     onCodes: (List<String>) -> Unit,
     onError: () -> Unit,
     modifier: Modifier = Modifier,
@@ -325,7 +375,7 @@ private fun CameraPreview(
     val currentOnError by rememberUpdatedState(onError)
     val previewView = remember { PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
 
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, imageCapture, analyzeBarcodes) {
         val executor = Executors.newSingleThreadExecutor()
         val analyzer = BarcodeAnalyzer { codes -> ContextCompat.getMainExecutor(context).execute { currentOnCodes(codes) } }
         val providerFuture = ProcessCameraProvider.getInstance(context)
@@ -341,12 +391,17 @@ private fun CameraPreview(
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 }
                 val preview = Preview.Builder().build().also { it.setSurfaceProvider(previewView.surfaceProvider) }
-                val analysis = ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
-                    .also { it.setAnalyzer(executor, analyzer) }
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, analysis, imageCapture)
+                if (analyzeBarcodes) {
+                    val analysis = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                        .also { it.setAnalyzer(executor, analyzer) }
+                    cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, analysis, imageCapture)
+                } else {
+                    // Fotografia do preço ou do nome: sem leitor de códigos, a fotografia sai com a resolução máxima.
+                    cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, imageCapture)
+                }
             } catch (_: Exception) {
                 currentOnError()
             }
@@ -391,6 +446,33 @@ private fun ManualCodeDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit)
 }
 
 @Composable
+private fun ManualPriceDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var price by rememberSaveable { mutableStateOf("") }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    val cents = MoneyParser.parseToCents(price)?.takeIf { it > 0 }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.scanner_manual_price)) },
+        text = {
+            AmountField(
+                value = price,
+                onValueChange = { price = it.filter { c -> c.isDigit() || c == ',' || c == '.' }.take(10) },
+                label = stringResource(R.string.item_price),
+                invalid = price.isNotBlank() && cents == null,
+                modifier = Modifier.focusRequester(focus),
+                imeAction = ImeAction.Done,
+            )
+        },
+        confirmButton = {
+            TextButton(enabled = cents != null, onClick = { onConfirm(price) }) { Text(stringResource(R.string.scanner_use_price)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+@Composable
 private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, modifier: Modifier = Modifier) {
     val draft = state.draft ?: return
     Column(
@@ -419,7 +501,33 @@ private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, m
                 }
             }
         }
-        NameField(draft.name, { v -> viewModel.onDraftChange { it.copy(name = v) } }, stringResource(R.string.item_name))
+        NameField(
+            draft.name,
+            { v -> viewModel.onDraftChange { it.copy(name = v) } },
+            stringResource(R.string.item_name),
+            trailingIcon = if (draft.name.isBlank()) {
+                null
+            } else {
+                {
+                    IconButton(onClick = viewModel::onCaptureName, enabled = !state.saving) {
+                        Icon(painterResource(R.drawable.ic_photo_camera), contentDescription = stringResource(R.string.scanner_photo_name))
+                    }
+                }
+            },
+        )
+        if (draft.name.isBlank()) {
+            OutlinedButton(
+                onClick = viewModel::onCaptureName,
+                enabled = !state.saving,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+            ) {
+                Icon(painterResource(R.drawable.ic_photo_camera), contentDescription = null)
+                Text(stringResource(R.string.scanner_photo_name), Modifier.padding(start = 8.dp))
+            }
+        }
+        if (draft.nameCandidates.size > 1) {
+            NameCandidates(draft) { name -> viewModel.onDraftChange { it.copy(name = name) } }
+        }
         Text(stringResource(R.string.item_unit), style = MaterialTheme.typography.labelLarge)
         UnitSelector(draft.unit, { unit -> viewModel.onDraftChange { it.copy(unit = unit) } })
         if (draft.priceCandidates.isNotEmpty()) {
@@ -448,12 +556,25 @@ private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, m
             stringResource(R.string.item_line_total, draft.totalCents?.let(MoneyFormatter::format) ?: "—"),
             style = MaterialTheme.typography.titleLarge,
         )
-        OutlinedButton(
-            onClick = viewModel::onCaptureMore,
-            enabled = !state.saving,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-        ) {
-            Text(stringResource(if (draft.barcode == null) R.string.scanner_read_code else R.string.scanner_photo_price))
+        if (draft.barcode == null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = viewModel::onCaptureCode,
+                    enabled = !state.saving,
+                    modifier = Modifier.weight(1f).height(56.dp),
+                ) { Text(stringResource(R.string.scanner_read_code), textAlign = TextAlign.Center) }
+                OutlinedButton(
+                    onClick = viewModel::onCapturePrice,
+                    enabled = !state.saving,
+                    modifier = Modifier.weight(1f).height(56.dp),
+                ) { Text(stringResource(R.string.scanner_photo_price), textAlign = TextAlign.Center) }
+            }
+        } else {
+            OutlinedButton(
+                onClick = viewModel::onCapturePrice,
+                enabled = !state.saving,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+            ) { Text(stringResource(R.string.scanner_photo_price)) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
@@ -477,6 +598,19 @@ private fun ProductLookupStatus.messageRes(): Int = when (this) {
     ProductLookupStatus.OFFLINE -> R.string.scanner_status_offline
     ProductLookupStatus.REMOTE_ERROR -> R.string.scanner_status_remote_error
     ProductLookupStatus.INTERNAL_CODE -> R.string.scanner_status_internal
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun NameCandidates(draft: ScanDraft, onSelect: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.scanner_names_found), style = MaterialTheme.typography.labelLarge)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            draft.nameCandidates.forEach { name ->
+                FilterChip(selected = name == draft.name, onClick = { onSelect(name) }, label = { Text(name) })
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

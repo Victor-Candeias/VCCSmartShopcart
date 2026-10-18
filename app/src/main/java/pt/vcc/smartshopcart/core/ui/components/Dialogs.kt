@@ -72,11 +72,18 @@ internal fun QuantityField(value: String, onValueChange: (String) -> Unit, unit:
 }
 
 @Composable
-internal fun NameField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier) {
+internal fun NameField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    trailingIcon: (@Composable () -> Unit)? = null,
+) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
+        trailingIcon = trailingIcon,
         singleLine = true,
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
         modifier = modifier.fillMaxWidth(),

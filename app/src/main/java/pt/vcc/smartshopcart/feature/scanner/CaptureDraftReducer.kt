@@ -34,6 +34,8 @@ data class ScanDraft(
     val priceCandidates: List<PriceCandidate> = emptyList(),
     val selectedCandidate: Int? = null,
     val ocrRawText: String? = null,
+    /** Nomes lidos na fotografia do nome, por ordem de sugestão. */
+    val nameCandidates: List<String> = emptyList(),
 ) : Serializable {
     val priceCents: Long? get() = MoneyParser.parseToCents(price)?.takeIf { it > 0 }
     val quantityValue: BigDecimal? get() = QuantityParser.parse(quantity)
@@ -108,4 +110,14 @@ object CaptureDraftReducer {
         }
         return draft.copy(selectedCandidate = index, price = MoneyFormatter.formatPlain(candidate.cents), unit = unit)
     }
+
+    /** Nomes lidos numa fotografia: o primeiro preenche o nome; devolve `null` se não houver nenhum. */
+    fun withNames(draft: ScanDraft?, names: List<String>, listItem: ShoppingListItem?): ScanDraft? {
+        val first = names.firstOrNull() ?: return null
+        return (draft ?: start(listItem)).copy(name = first, nameCandidates = names)
+    }
+
+    /** Preço escrito à mão no lugar da fotografia; os candidatos do OCR ficam disponíveis mas não selecionados. */
+    fun withManualPrice(draft: ScanDraft?, cents: Long, listItem: ShoppingListItem?): ScanDraft =
+        (draft ?: start(listItem)).copy(price = MoneyFormatter.formatPlain(cents), selectedCandidate = null)
 }

@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import pt.vcc.smartshopcart.core.money.MoneyParser
 import pt.vcc.smartshopcart.core.navigation.ScannerRoute
 import pt.vcc.smartshopcart.core.ocr.OcrLine
 import pt.vcc.smartshopcart.core.ocr.PriceCandidateParser
+import pt.vcc.smartshopcart.core.ocr.ProductNameExtractor
 import pt.vcc.smartshopcart.domain.model.SessionStatus
 import pt.vcc.smartshopcart.domain.model.ShoppingListItem
 import pt.vcc.smartshopcart.domain.repository.ShoppingListRepository
@@ -32,12 +34,19 @@ import javax.inject.Inject
 
 enum class ScanPhase { SCANNING, RESOLVING, CONFIRM }
 
+/**
+ * O que a câmara está a capturar. Em [PRICE] e [NAME] a leitura contínua de códigos de barras fica desligada e a
+ * fotografia só lê texto, dentro da moldura.
+ */
+enum class CaptureTarget { PRODUCT, PRICE, NAME }
+
 data class ScannerUiState(
     val loading: Boolean = true,
     val missing: Boolean = false,
     val inactive: Boolean = false,
     val listItemName: String? = null,
     val phase: ScanPhase = ScanPhase.SCANNING,
+    val target: CaptureTarget = CaptureTarget.PRODUCT,
     val multipleCodes: Boolean = false,
     val invalidCode: String? = null,
     /** A fotografia não tinha código nem preço legível. */
@@ -84,11 +93,15 @@ class ScannerViewModel @Inject constructor(
             storeId = session.storeId
             listItem = route.listItemId?.let { lists.getItem(it) }
             val draft = savedStateHandle.get<ScanDraft>(KEY_DRAFT)
+            val savedTarget = savedStateHandle.get<String>(KEY_TARGET)
+                ?.let { name -> CaptureTarget.entries.firstOrNull { it.name == name } }
+                ?.takeIf { draft != null }
             _state.value = ScannerUiState(
                 loading = false,
                 inactive = session.status != SessionStatus.ACTIVE,
                 listItemName = listItem?.name,
-                phase = if (draft != null) ScanPhase.CONFIRM else ScanPhase.SCANNING,
+                phase = if (draft != null && savedTarget == null) ScanPhase.CONFIRM else ScanPhase.SCANNING,
+                target = savedTarget ?: CaptureTarget.PRODUCT,
                 draft = draft,
             )
         }
@@ -98,7 +111,7 @@ class ScannerViewModel @Inject constructor(
     fun onCodesDetected(codes: List<String>) {
         val current = _state.value
         if (current.loading || current.phase != ScanPhase.SCANNING || current.recognizing) return
-        if (current.draft?.barcode != null) return
+        if (current.target != CaptureTarget.PRODUCT || current.draft?.barcode != null) return
         if (codes.size > 1) {
             _state.update { it.copy(multipleCodes = true) }
             return
@@ -113,16 +126,38 @@ class ScannerViewModel @Inject constructor(
         resolve(code.filter(Char::isDigit), manual = true)
     }
 
+    /** Preço escrito à mão enquanto se fotografa o preço (aceita décimas e cêntimos). */
+    fun onManualPrice(text: String) {
+        if (_state.value.phase != ScanPhase.SCANNING) return
+        val cents = MoneyParser.parseToCents(text)?.takeIf { it > 0 } ?: return
+        showDraft(CaptureDraftReducer.withManualPrice(_state.value.draft, cents, listItem))
+    }
+
     fun onPhotoStarted() = _state.update { it.copy(recognizing = true, nothingRecognized = false, multipleCodes = false) }
 
     fun onPhotoFailed() = _state.update { it.copy(recognizing = false, nothingRecognized = true) }
 
     /**
      * Resultado de uma fotografia (§5.1 A): código e texto lidos da mesma imagem. Junta-se ao rascunho
-     * existente (§5.1 B); nada é adicionado sem confirmação.
+     * existente (§5.1 B); nada é adicionado sem confirmação. Ao fotografar o preço ou o nome, os códigos de
+     * barras são ignorados.
      */
     fun onPhotoRecognized(barcodes: List<String>, lines: List<OcrLine>) {
-        if (_state.value.phase != ScanPhase.SCANNING) return
+        val current = _state.value
+        if (current.phase != ScanPhase.SCANNING) return
+        when (current.target) {
+            CaptureTarget.NAME -> {
+                val updated = CaptureDraftReducer.withNames(current.draft, ProductNameExtractor.candidates(lines), listItem)
+                if (updated == null) _state.update { it.copy(recognizing = false, nothingRecognized = true) } else showDraft(updated)
+                return
+            }
+            CaptureTarget.PRICE -> {
+                val updated = CaptureDraftReducer.withPrices(current.draft, PriceCandidateParser.parse(lines), listItem)
+                if (updated == null) _state.update { it.copy(recognizing = false, nothingRecognized = true) } else showDraft(updated)
+                return
+            }
+            CaptureTarget.PRODUCT -> Unit
+        }
         val codes = barcodes.distinct()
         if (codes.size > 1) {
             _state.update { it.copy(recognizing = false, multipleCodes = true) }
@@ -159,24 +194,45 @@ class ScannerViewModel @Inject constructor(
 
     fun onSelectCandidate(index: Int) = onDraftChange { CaptureDraftReducer.selectCandidate(it, index) }
 
-    /** Volta à câmara mantendo o rascunho, para ler o código ou fotografar o preço em falta. */
-    fun onCaptureMore() {
+    /** Volta à câmara mantendo o rascunho, para ler o código de barras em falta. */
+    fun onCaptureCode() = startCapture(CaptureTarget.PRODUCT)
+
+    /** Volta à câmara mantendo o rascunho, só para fotografar a etiqueta do preço. */
+    fun onCapturePrice() = startCapture(CaptureTarget.PRICE)
+
+    /** Volta à câmara mantendo o rascunho, só para fotografar o nome do produto. */
+    fun onCaptureName() = startCapture(CaptureTarget.NAME)
+
+    private fun startCapture(target: CaptureTarget) {
         if (_state.value.draft == null) return
-        _state.update { it.copy(phase = ScanPhase.SCANNING, multipleCodes = false, nothingRecognized = false) }
+        savedStateHandle[KEY_TARGET] = target.name
+        _state.update {
+            it.copy(phase = ScanPhase.SCANNING, target = target, multipleCodes = false, nothingRecognized = false)
+        }
     }
 
     /** Volta à confirmação sem mais capturas. */
     fun onReviewDraft() {
         if (_state.value.draft == null) return
-        _state.update { it.copy(phase = ScanPhase.CONFIRM, multipleCodes = false, nothingRecognized = false) }
+        savedStateHandle.remove<String>(KEY_TARGET)
+        _state.update {
+            it.copy(phase = ScanPhase.CONFIRM, target = CaptureTarget.PRODUCT, multipleCodes = false, nothingRecognized = false)
+        }
     }
 
     /** Descarta o rascunho e volta à câmara; o mesmo código continua ignorado durante 3 s (D22). */
     fun onScanAnother() {
         _state.value.draft?.barcode?.let { debouncer.mark(it, SystemClock.elapsedRealtime()) }
         savedStateHandle.remove<ScanDraft>(KEY_DRAFT)
+        savedStateHandle.remove<String>(KEY_TARGET)
         _state.update {
-            it.copy(phase = ScanPhase.SCANNING, draft = null, multipleCodes = false, nothingRecognized = false)
+            it.copy(
+                phase = ScanPhase.SCANNING,
+                target = CaptureTarget.PRODUCT,
+                draft = null,
+                multipleCodes = false,
+                nothingRecognized = false,
+            )
         }
     }
 
@@ -232,9 +288,11 @@ class ScannerViewModel @Inject constructor(
 
     private fun showDraft(draft: ScanDraft) {
         savedStateHandle[KEY_DRAFT] = draft
+        savedStateHandle.remove<String>(KEY_TARGET)
         _state.update {
             it.copy(
                 phase = ScanPhase.CONFIRM,
+                target = CaptureTarget.PRODUCT,
                 draft = draft,
                 recognizing = false,
                 multipleCodes = false,
@@ -244,5 +302,6 @@ class ScannerViewModel @Inject constructor(
     }
     private companion object {
         const val KEY_DRAFT = "scan_draft"
+        const val KEY_TARGET = "scan_target"
     }
 }

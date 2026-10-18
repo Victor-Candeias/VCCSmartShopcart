@@ -22,4 +22,5 @@ status: active
 | sc-04-barcode-catalog | Scanner de código de barras e catálogo Open Food Facts | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-01-foundation | [sc-04-barcode-catalog](../specs/vcc-smartshopcart-mvp/sc-04-barcode-catalog-spec.md) |
 | sc-05-ocr-capture | OCR de preços, parser e captura combinada com confirmação | done | 2026-10-18 | developer | critical | 2026-10-18 |  | sc-04-barcode-catalog | [sc-05-ocr-capture](../specs/vcc-smartshopcart-mvp/sc-05-ocr-capture-spec.md) |
 | sc-06-history-stabilization | Histórico, definições, acessibilidade e APK assinado | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-03-lists, sc-05-ocr-capture | [sc-06-history-stabilization](../specs/vcc-smartshopcart-mvp/sc-06-history-stabilization-spec.md) |
+| sc-07-icon-scan-ocr | Ícone da app, botão Scan com texto e OCR de nome e preço | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-06-history-stabilization | [sc-07-icon-scan-ocr](../specs/vcc-smartshopcart-mvp/sc-07-icon-scan-ocr-spec.md) |
 <!-- /maestru:work-items-list -->

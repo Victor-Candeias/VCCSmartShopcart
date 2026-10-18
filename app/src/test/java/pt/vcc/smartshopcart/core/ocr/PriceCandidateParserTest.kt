@@ -73,4 +73,46 @@ class PriceCandidateParserTest {
         assertEquals("Atum\nPromo 0,99 €", result.rawText)
         assertEquals("Promo 0,99 €", result.candidates.single().rawText)
     }
+
+    @Test
+    fun `junta euros grandes e centimos em expoente lidos em linhas separadas`() {
+        val result = PriceCandidateParser.parse(
+            listOf(
+                OcrLine("Arroz Carolino", height = 30, left = 40, top = 20, right = 400),
+                OcrLine("1", height = 200, left = 100, top = 100, right = 180),
+                OcrLine("49€", height = 80, left = 190, top = 110, right = 320),
+                OcrLine("1,14 €/kg", height = 25, left = 40, top = 330, right = 220),
+            ),
+        )
+        assertEquals(149L, result.suggested?.cents)
+        assertEquals(PriceKind.SALE, result.suggested?.kind)
+        assertTrue(result.candidates.any { it.cents == 114L && it.kind == PriceKind.PER_KG })
+    }
+
+    @Test
+    fun `nao junta numeros afastados ou abaixo dos euros`() {
+        val farAway = PriceCandidateParser.parse(
+            listOf(OcrLine("2", height = 100, left = 0, top = 0, right = 50), OcrLine("50", height = 40, left = 600, top = 0, right = 650)),
+        )
+        assertTrue(farAway.candidates.isEmpty())
+        val below = PriceCandidateParser.parse(
+            listOf(OcrLine("2", height = 100, left = 0, top = 0, right = 50), OcrLine("50", height = 40, left = 60, top = 150, right = 110)),
+        )
+        assertTrue(below.candidates.isEmpty())
+    }
+
+    @Test
+    fun `centimos colados aos euros no maior texto da etiqueta`() {
+        val result = PriceCandidateParser.parse(listOf(OcrLine("Leite meio-gordo", 30), OcrLine("149€", 150)))
+        assertEquals(149L, result.suggested?.cents)
+        assertTrue(PriceCandidateParser.parse(listOf(OcrLine("Leite", 150), OcrLine("500", 30))).candidates.isEmpty())
+    }
+
+    @Test
+    fun `corrige trocas comuns do OCR`() {
+        listOf("1,4O €", "I,49 €", "1,49E", "1, 49 €", "O,99 €").zip(listOf(140L, 149L, 149L, 149L, 99L)).forEach { (text, cents) ->
+            assertEquals(text, cents, parse(text).suggested?.cents)
+        }
+        assertTrue(parse("Leite 1,5l").candidates.isEmpty())
+    }
 }

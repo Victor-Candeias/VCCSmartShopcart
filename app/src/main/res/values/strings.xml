@@ -111,12 +111,21 @@
     <string name="planned_complete_pending">Ainda há %1$d artigo(s) por comprar.</string>
 
     <!-- Leitor de código de barras -->
-    <string name="action_scan">Ler código de barras</string>
+    <string name="action_scan_short">Scan</string>
     <string name="scanner_title">Ler produto e preço</string>
     <string name="scanner_for_item">Para: %1$s</string>
     <string name="scanner_hint">Aponte para o código de barras ou fotografe a etiqueta com o preço.</string>
     <string name="scanner_multiple">Há vários códigos à vista. Enquadre apenas um.</string>
     <string name="scanner_manual">Introduzir código</string>
+    <string name="scanner_manual_price">Introduzir preço</string>
+    <string name="scanner_use_price">Usar preço</string>
+    <string name="scanner_type_name">Escrever nome</string>
+    <string name="scanner_photo_name">Fotografar nome</string>
+    <string name="scanner_names_found">Nomes lidos na fotografia</string>
+    <string name="scanner_hint_price">Enquadre a etiqueta do preço na moldura e fotografe.</string>
+    <string name="scanner_hint_name">Enquadre o nome do produto na moldura e fotografe.</string>
+    <string name="scanner_nothing_price">Não foi reconhecido nenhum preço. Aproxime a etiqueta e tente de novo, ou introduza o preço.</string>
+    <string name="scanner_nothing_name">Não foi reconhecido nenhum nome. Aproxime o texto e tente de novo, ou escreva o nome.</string>
     <string name="scanner_manual_label">EAN-8, EAN-13 ou UPC-A</string>
     <string name="scanner_search">Procurar</string>
     <string name="scanner_invalid_title">Código inválido</string>
