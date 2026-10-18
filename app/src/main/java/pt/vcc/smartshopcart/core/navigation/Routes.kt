@@ -26,3 +26,7 @@ import kotlinx.serialization.Serializable
 
 /** Leitor de código de barras; [listItemId] liga o item lido a um artigo planeado. */
 @Serializable data class ScannerRoute(val sessionId: String, val listItemId: String? = null)
+
+// Despesas rápidas
+
+@Serializable data object ExpenseCatalogRoute

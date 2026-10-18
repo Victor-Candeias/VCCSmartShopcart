@@ -29,6 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import pt.vcc.smartshopcart.R
 import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
+import pt.vcc.smartshopcart.feature.expenses.catalog.ExpenseCatalogScreen
 import pt.vcc.smartshopcart.feature.history.HistoryDetailScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
@@ -139,6 +140,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onAdded = { navController.popBackStack() },
                 )
             }
+            composable<ExpenseCatalogRoute> { ExpenseCatalogScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

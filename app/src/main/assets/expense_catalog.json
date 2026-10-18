@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "categories": [
+    { "id": "seed-cat-cafe", "name": "Café e Pastelaria", "icon": "☕" },
+    { "id": "seed-cat-restauracao", "name": "Restauração", "icon": "🍽️" },
+    { "id": "seed-cat-transportes", "name": "Transportes", "icon": "🚗" },
+    { "id": "seed-cat-outras", "name": "Outras despesas", "icon": "🧾" }
+  ],
+  "products": [
+    { "id": "seed-cafe", "categoryId": "seed-cat-cafe", "name": "Café", "icon": "☕", "favorite": true },
+    { "id": "seed-descafeinado", "categoryId": "seed-cat-cafe", "name": "Descafeinado", "icon": "☕" },
+    { "id": "seed-galao", "categoryId": "seed-cat-cafe", "name": "Galão", "icon": "🥛" },
+    { "id": "seed-meia-de-leite", "categoryId": "seed-cat-cafe", "name": "Meia de leite", "icon": "🥛" },
+    { "id": "seed-pastel-de-nata", "categoryId": "seed-cat-cafe", "name": "Pastel de nata", "icon": "🥧", "favorite": true },
+    { "id": "seed-bola-de-berlim", "categoryId": "seed-cat-cafe", "name": "Bola de Berlim", "icon": "🍩" },
+    { "id": "seed-sandes", "categoryId": "seed-cat-cafe", "name": "Sandes", "icon": "🥪" },
+    { "id": "seed-agua", "categoryId": "seed-cat-cafe", "name": "Água", "icon": "💧" },
+    { "id": "seed-sopa", "categoryId": "seed-cat-restauracao", "name": "Sopa", "icon": "🍲" },
+    { "id": "seed-prato-do-dia", "categoryId": "seed-cat-restauracao", "name": "Prato do dia", "icon": "🍛" },
+    { "id": "seed-menu", "categoryId": "seed-cat-restauracao", "name": "Menu", "icon": "🍱" },
+    { "id": "seed-sobremesa", "categoryId": "seed-cat-restauracao", "name": "Sobremesa", "icon": "🍮" },
+    { "id": "seed-bebida", "categoryId": "seed-cat-restauracao", "name": "Bebida", "icon": "🥤" },
+    { "id": "seed-estacionamento", "categoryId": "seed-cat-transportes", "name": "Estacionamento", "icon": "🅿️" },
+    { "id": "seed-portagem", "categoryId": "seed-cat-transportes", "name": "Portagem", "icon": "🛣️" },
+    { "id": "seed-bilhete", "categoryId": "seed-cat-transportes", "name": "Bilhete", "icon": "🎫" },
+    { "id": "seed-taxi", "categoryId": "seed-cat-transportes", "name": "Táxi", "icon": "🚕" }
+  ]
+}

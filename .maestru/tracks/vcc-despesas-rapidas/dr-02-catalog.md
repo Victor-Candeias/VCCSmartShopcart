@@ -6,7 +6,8 @@ title: "Catálogo de despesas: seed JSON sem duplicados e ecrã de gestão"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - dr-02-catalog-spec
 track: vcc-despesas-rapidas

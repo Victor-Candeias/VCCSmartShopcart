@@ -242,4 +242,27 @@
     <string name="about_prices_open">Abrir prices.openfoodfacts.org</string>
     <string name="about_licenses_title">Licenças de código aberto</string>
     <string name="about_licenses_text">Kotlin, kotlinx.coroutines e kotlinx.serialization, AndroidX e Jetpack Compose, Room, DataStore, CameraX, Hilt/Dagger, Retrofit e OkHttp são distribuídos sob a Apache License 2.0. O reconhecimento de códigos e de texto usa o Google ML Kit, sujeito aos termos do ML Kit.</string>
+
+    <!-- Despesas rápidas: catálogo -->
+    <string name="expense_catalog_title">Gerir catálogo</string>
+    <string name="expense_catalog_show_hidden">Mostrar ocultos</string>
+    <string name="expense_catalog_empty">Nenhum produto encontrado.</string>
+    <string name="expense_category_all">Todas</string>
+    <string name="expense_search">Pesquisar produto</string>
+    <string name="expense_search_clear">Limpar pesquisa</string>
+    <string name="expense_product_new">Novo produto</string>
+    <string name="expense_product_edit">Editar produto</string>
+    <string name="expense_product_hide">Ocultar</string>
+    <string name="expense_product_show">Mostrar</string>
+    <string name="expense_product_hidden">Oculto</string>
+    <string name="expense_product_category">Categoria</string>
+    <string name="expense_product_name">Nome</string>
+    <string name="expense_product_icon">Ícone (opcional, ex.: ☕)</string>
+    <string name="expense_product_default_price">Preço habitual (opcional)</string>
+    <string name="expense_default_price_value">Habitual %1$s</string>
+    <string name="expense_no_default_price">Sem preço habitual</string>
+    <string name="expense_favorite_add">Marcar %1$s como favorito</string>
+    <string name="expense_favorite_remove">Retirar %1$s dos favoritos</string>
+    <string name="expense_move_up">Subir %1$s</string>
+    <string name="expense_move_down">Descer %1$s</string>
 </resources>

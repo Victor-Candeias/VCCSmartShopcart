@@ -21,7 +21,7 @@ Catálogo editável e independente das listas (§3). O seed inicial vem de `asse
 
 - `app/src/main/assets/expense_catalog.json` (`version`, `categories[]`, `products[]`).
 - `data/seed/ExpenseCatalogSeed.kt`: DTO `@Serializable` e parser.
-- `ExpenseCatalogSeeder.seedIfNeeded()`: compara a versão com a guardada, insere com `IGNORE` numa transação e grava a versão; chamado no arranque da app e ao abrir o modo.
+- `ExpenseCatalogSeeder.seedIfNeeded()`: compara a versão com a guardada (`ExpensePreferences`, DataStore), insere com `IGNORE` numa transação e grava a versão; chamado pelos ViewModels ao abrir o modo (início, editor, catálogo), evitando trabalho em `Application.onCreate`.
 
 ### Fase 2 — Casos de utilização
 
@@ -41,6 +41,7 @@ Catálogo editável e independente das listas (§3). O seed inicial vem de `asse
 | `domain/usecase/expense/ExpenseCatalogUseCases.kt` | create | Casos de utilização |
 | `feature/expenses/catalog/*` | create | Ecrã e ViewModel |
 | `feature/expenses/components/ExpenseProductDialog.kt` | create | Diálogo de produto |
-| `ShoppingApplication.kt` | modify | Seed no arranque |
+| `core/datastore/ExpensePreferences.kt` | create | Versão do seed importada |
+| `core/navigation/*` | modify | Rota `ExpenseCatalogRoute` |
 | `res/values/strings.xml` | modify | Textos |
 | `test/.../ExpenseCatalogSeederTest.kt`, `ExpenseCatalogUseCasesTest.kt` | create | Testes |
