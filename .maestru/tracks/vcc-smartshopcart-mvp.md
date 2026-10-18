@@ -16,7 +16,7 @@ status: active
 <!-- maestru:work-items-list -->
 | ID | Title | Status | Created | Owner | Priority | Completed | Template | Blocked By | Spec |
 |---|---|---|---|---|---|---|---|---|---|
-| sc-01-foundation | Fundação: projeto Android, Hilt, Room, navegação e domínio monetário | backlog | 2026-10-18 | developer | critical |  |  |  |  |
+| sc-01-foundation | Fundação: projeto Android, Hilt, Room, navegação e domínio monetário | done | 2026-10-18 | developer | critical | 2026-10-18 |  |  | [sc-01-foundation](../specs/vcc-smartshopcart-mvp/sc-01-foundation-spec.md) |
 | sc-02-calculator | Calculadora rápida: sessões, teclado, linhas, totais e orçamento | backlog | 2026-10-18 | developer | high |  |  | sc-01-foundation |  |
 | sc-03-lists | Listas planeadas: CRUD, itens e sessão ligada à lista | backlog | 2026-10-18 | developer | high |  |  | sc-02-calculator |  |
 | sc-04-barcode-catalog | Scanner de código de barras e catálogo Open Food Facts | backlog | 2026-10-18 | developer | high |  |  | sc-01-foundation |  |

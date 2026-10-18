@@ -6,8 +6,11 @@ title: "Fundação: projeto Android, Hilt, Room, navegação e domínio monetár
 created: 2026-10-18
 owner: developer
 priority: critical
-status: backlog
+status: done
+completed: 2026-10-18
 track: vcc-smartshopcart-mvp
+specs:
+  - sc-01-foundation-spec
 ---
 
 # sc-01-foundation: Fundação: projeto Android, Hilt, Room, navegação e domínio monetário

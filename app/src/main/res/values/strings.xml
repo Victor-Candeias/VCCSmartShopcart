@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VCCSmartShopcart</string>
+
+    <!-- Navegação -->
+    <string name="nav_home">Início</string>
+    <string name="nav_lists">Listas</string>
+    <string name="nav_history">Histórico</string>
+    <string name="nav_settings">Definições</string>
+    <string name="action_back">Voltar</string>
+
+    <!-- Início -->
+    <string name="home_calculator">Calculadora rápida</string>
+    <string name="home_calculator_hint">Somar preços sem lista prévia</string>
+    <string name="home_lists">Lista planeada</string>
+    <string name="home_lists_hint">Criar uma lista e fazer compras com ela</string>
+
+    <!-- Listas -->
+    <string name="lists_empty">Ainda não há listas.</string>
+
+    <!-- Histórico -->
+    <string name="history_empty">Ainda não há compras concluídas.</string>
+
+    <!-- Definições -->
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Escuro</string>
+</resources>
