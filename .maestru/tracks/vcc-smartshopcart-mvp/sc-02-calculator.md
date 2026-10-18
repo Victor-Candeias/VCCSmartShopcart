@@ -6,10 +6,13 @@ title: "Calculadora rápida: sessões, teclado, linhas, totais e orçamento"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 track: vcc-smartshopcart-mvp
 blocked-by:
   - sc-01-foundation
+specs:
+  - sc-02-calculator-spec
 ---
 
 # sc-02-calculator: Calculadora rápida: sessões, teclado, linhas, totais e orçamento

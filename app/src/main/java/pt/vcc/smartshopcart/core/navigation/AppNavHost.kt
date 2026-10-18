@@ -1,6 +1,7 @@
 package pt.vcc.smartshopcart.core.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -27,8 +28,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import pt.vcc.smartshopcart.R
+import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
+import pt.vcc.smartshopcart.feature.product.ItemEditorScreen
 import pt.vcc.smartshopcart.feature.settings.SettingsScreen
 import pt.vcc.smartshopcart.feature.shoppinglist.ShoppingListsScreen
 import kotlin.reflect.KClass
@@ -79,17 +82,25 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
-            modifier = Modifier.padding(padding),
+            modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable<HomeRoute> {
                 HomeScreen(
-                    onOpenCalculator = {},
+                    onOpenSession = { sessionId, _ -> navController.navigate(CalculatorRoute(sessionId)) },
                     onOpenLists = { navController.navigateTopLevel(ListsRoute) },
                 )
             }
             composable<ListsRoute> { ShoppingListsScreen() }
             composable<HistoryRoute> { HistoryScreen() }
             composable<SettingsRoute> { SettingsScreen() }
+            composable<CalculatorRoute> {
+                CalculatorScreen(
+                    onBack = { navController.popBackStack() },
+                    onEditItem = { itemId -> navController.navigate(ItemEditRoute(itemId)) },
+                    onSessionClosed = { navController.popBackStack(HomeRoute, inclusive = false) },
+                )
+            }
+            composable<ItemEditRoute> { ItemEditorScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

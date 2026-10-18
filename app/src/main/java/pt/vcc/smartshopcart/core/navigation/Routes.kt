@@ -11,3 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object HistoryRoute
 
 @Serializable data object SettingsRoute
+
+@Serializable data class CalculatorRoute(val sessionId: String)
+
+@Serializable data class ItemEditRoute(val itemId: String)

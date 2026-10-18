@@ -8,6 +8,56 @@
     <string name="nav_history">Histórico</string>
     <string name="nav_settings">Definições</string>
     <string name="action_back">Voltar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_close">Fechar</string>
+    <string name="action_start">Iniciar</string>
+    <string name="action_resume">Retomar</string>
+    <string name="action_complete">Concluir</string>
+    <string name="action_cancel_session">Cancelar compra</string>
+    <string name="action_more">Mais opções</string>
+    <string name="action_undo">Desfazer</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_add_price">Adicionar preço</string>
+    <string name="action_remove_item">Remover artigo</string>
+    <string name="error_invalid_amount">Valor inválido (ex.: 1,49)</string>
+    <string name="error_invalid_quantity">Quantidade inválida (ex.: 0,750)</string>
+
+    <!-- Sessão de compra -->
+    <string name="session_total">Total</string>
+    <string name="session_store_optional">Supermercado (opcional)</string>
+    <string name="session_budget_optional">Orçamento (opcional)</string>
+    <string name="session_in_progress">Compra em curso</string>
+    <string name="session_in_progress_summary">%1$d artigos · %2$s</string>
+    <string name="session_active_exists_title">Já existe uma compra em curso</string>
+    <string name="session_active_exists_text">Conclua ou cancele a compra atual antes de iniciar outra.</string>
+    <string name="session_complete_title">Concluir compra?</string>
+    <string name="session_complete_text">%1$d artigos, total %2$s. Depois de concluída a compra não pode ser alterada.</string>
+    <string name="session_cancel_title">Cancelar compra?</string>
+    <string name="session_cancel_text">A compra deixa de estar em curso e não fica no histórico.</string>
+    <string name="session_not_active">Esta compra já não está em curso.</string>
+    <string name="session_missing">Compra não encontrada.</string>
+    <string name="budget_remaining">Restam %1$s de %2$s</string>
+    <string name="budget_warning">Atenção: restam apenas %1$s de %2$s</string>
+    <string name="budget_exceeded">Orçamento ultrapassado em %1$s (orçamento %2$s)</string>
+
+    <!-- Calculadora -->
+    <string name="calculator_empty">Introduza um preço no teclado e toque em «Adicionar preço».</string>
+    <string name="keypad_backspace">Apagar</string>
+    <string name="item_removed">Artigo removido</string>
+    <string name="item_unnamed">Artigo sem nome</string>
+
+    <!-- Editor de artigo -->
+    <string name="item_edit_title">Editar artigo</string>
+    <string name="item_name">Nome (opcional)</string>
+    <string name="item_unit">Unidade</string>
+    <string name="item_price">Preço unitário</string>
+    <string name="item_price_per">Preço por %1$s</string>
+    <string name="item_quantity">Quantidade</string>
+    <string name="item_discount">Desconto na linha (opcional)</string>
+    <string name="item_line_total">Total da linha: %1$s</string>
+    <string name="item_barcode">Código de barras: %1$s</string>
+    <string name="item_missing">Artigo não encontrado.</string>
+    <string name="item_delete_title">Remover este artigo?</string>
 
     <!-- Início -->
     <string name="home_calculator">Calculadora rápida</string>
