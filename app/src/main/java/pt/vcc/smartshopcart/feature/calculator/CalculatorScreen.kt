@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -62,6 +63,7 @@ import pt.vcc.smartshopcart.core.ui.components.SessionItemRow
 @Composable
 fun CalculatorScreen(
     onBack: () -> Unit,
+    onScan: (sessionId: String) -> Unit,
     onEditItem: (itemId: String) -> Unit,
     onSessionClosed: () -> Unit,
     viewModel: CalculatorViewModel = hiltViewModel(),
@@ -109,6 +111,9 @@ fun CalculatorScreen(
                 },
                 actions = {
                     if (state.isActive) {
+                        IconButton(onClick = { onScan(viewModel.sessionId) }) {
+                            Icon(painterResource(R.drawable.ic_barcode), contentDescription = stringResource(R.string.action_scan))
+                        }
                         TextButton(onClick = { confirmComplete = true }) { Text(stringResource(R.string.action_complete)) }
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))

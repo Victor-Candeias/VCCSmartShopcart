@@ -19,3 +19,6 @@ import kotlinx.serialization.Serializable
 @Serializable data class ListDetailRoute(val listId: String)
 
 @Serializable data class PlannedSessionRoute(val sessionId: String)
+
+/** Leitor de código de barras; [listItemId] liga o item lido a um artigo planeado. */
+@Serializable data class ScannerRoute(val sessionId: String, val listItemId: String? = null)

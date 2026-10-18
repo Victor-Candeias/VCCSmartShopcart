@@ -110,6 +110,32 @@
     <string name="planned_add_extra">Extra</string>
     <string name="planned_complete_pending">Ainda há %1$d artigo(s) por comprar.</string>
 
+    <!-- Leitor de código de barras -->
+    <string name="action_scan">Ler código de barras</string>
+    <string name="scanner_title">Ler código de barras</string>
+    <string name="scanner_for_item">Para: %1$s</string>
+    <string name="scanner_hint">Aponte a câmara para o código de barras.</string>
+    <string name="scanner_multiple">Há vários códigos à vista. Enquadre apenas um.</string>
+    <string name="scanner_manual">Introduzir código</string>
+    <string name="scanner_manual_label">EAN-8, EAN-13 ou UPC-A</string>
+    <string name="scanner_search">Procurar</string>
+    <string name="scanner_invalid_title">Código inválido</string>
+    <string name="scanner_invalid_text">O código %1$s não é um EAN-8, EAN-13 ou UPC-A válido. Verifique os dígitos.</string>
+    <string name="scanner_resolving">A procurar o produto…</string>
+    <string name="scanner_permission_denied">Sem acesso à câmara. Pode dar permissão ou introduzir o código manualmente.</string>
+    <string name="scanner_permission_request">Permitir câmara</string>
+    <string name="scanner_camera_unavailable">Câmara indisponível. Introduza o código manualmente.</string>
+    <string name="scanner_status_local">Produto já guardado neste telemóvel.</string>
+    <string name="scanner_status_remote">Produto encontrado no Open Food Facts.</string>
+    <string name="scanner_status_not_found">Produto não encontrado. Pode indicar o nome.</string>
+    <string name="scanner_status_offline">Sem ligação à Internet. Pode indicar o nome.</string>
+    <string name="scanner_status_remote_error">Não foi possível consultar o catálogo. Pode indicar o nome.</string>
+    <string name="scanner_status_internal">Código interno da loja. Pode indicar o nome.</string>
+    <string name="scanner_last_price">Último preço: %1$s</string>
+    <string name="scanner_last_price_store">Último preço em %2$s: %1$s</string>
+    <string name="scanner_scan_another">Ler outro</string>
+    <string name="planned_scan_item">Ler código de barras de %1$s</string>
+
     <!-- Histórico -->
     <string name="history_empty">Ainda não há compras concluídas.</string>
 

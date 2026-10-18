@@ -6,7 +6,10 @@ title: Scanner de código de barras e catálogo Open Food Facts
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
+specs:
+  - sc-04-barcode-catalog-spec
 track: vcc-smartshopcart-mvp
 blocked-by:
   - sc-01-foundation

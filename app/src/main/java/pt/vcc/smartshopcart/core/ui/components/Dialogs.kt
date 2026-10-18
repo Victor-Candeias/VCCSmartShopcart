@@ -35,7 +35,7 @@ import pt.vcc.smartshopcart.domain.model.MeasureUnit
 import java.math.BigDecimal
 
 @Composable
-private fun AmountField(
+internal fun AmountField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -57,7 +57,7 @@ private fun AmountField(
 }
 
 @Composable
-private fun QuantityField(value: String, onValueChange: (String) -> Unit, unit: MeasureUnit, invalid: Boolean) {
+internal fun QuantityField(value: String, onValueChange: (String) -> Unit, unit: MeasureUnit, invalid: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -72,7 +72,7 @@ private fun QuantityField(value: String, onValueChange: (String) -> Unit, unit: 
 }
 
 @Composable
-private fun NameField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier) {
+internal fun NameField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,

@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -66,6 +67,7 @@ import java.math.BigDecimal
 @Composable
 fun PlannedSessionScreen(
     onBack: () -> Unit,
+    onScan: (sessionId: String, listItemId: String?) -> Unit,
     onEditItem: (itemId: String) -> Unit,
     onSessionClosed: () -> Unit,
     viewModel: PlannedSessionViewModel = hiltViewModel(),
@@ -115,6 +117,9 @@ fun PlannedSessionScreen(
                 },
                 actions = {
                     if (state.isActive) {
+                        IconButton(onClick = { onScan(viewModel.sessionId, null) }) {
+                            Icon(painterResource(R.drawable.ic_barcode), contentDescription = stringResource(R.string.action_scan))
+                        }
                         TextButton(onClick = { confirmComplete = true }) { Text(stringResource(R.string.action_complete)) }
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
@@ -151,6 +156,7 @@ fun PlannedSessionScreen(
             else -> PlannedContent(
                 state = state,
                 onAddPlanned = { addingListItemId = it.id },
+                onScanPlanned = { onScan(viewModel.sessionId, it.id) },
                 onSkip = { viewModel.setSkipped(it.id, true) },
                 onRestore = { viewModel.setSkipped(it.id, false) },
                 onEditItem = onEditItem,
@@ -239,6 +245,7 @@ fun PlannedSessionScreen(
 private fun PlannedContent(
     state: PlannedSessionUiState,
     onAddPlanned: (ShoppingListItem) -> Unit,
+    onScanPlanned: (ShoppingListItem) -> Unit,
     onSkip: (ShoppingListItem) -> Unit,
     onRestore: (ShoppingListItem) -> Unit,
     onEditItem: (String) -> Unit,
@@ -263,6 +270,7 @@ private fun PlannedContent(
                 PendingRow(
                     item = entry.listItem,
                     onClick = if (active) ({ onAddPlanned(entry.listItem) }) else null,
+                    onScan = if (active) ({ onScanPlanned(entry.listItem) }) else null,
                     onSkip = if (active) ({ onSkip(entry.listItem) }) else null,
                 )
             }
@@ -307,7 +315,7 @@ private fun LazyListScope.section(titleRes: Int, count: Int) {
 }
 
 @Composable
-private fun PendingRow(item: ShoppingListItem, onClick: (() -> Unit)?, onSkip: (() -> Unit)?) {
+private fun PendingRow(item: ShoppingListItem, onClick: (() -> Unit)?, onScan: (() -> Unit)?, onSkip: (() -> Unit)?) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -318,6 +326,14 @@ private fun PendingRow(item: ShoppingListItem, onClick: (() -> Unit)?, onSkip: (
         Column(Modifier.weight(1f)) {
             Text(item.name, style = MaterialTheme.typography.bodyLarge)
             Text(plannedItemDetail(item), style = MaterialTheme.typography.bodySmall)
+        }
+        if (onScan != null) {
+            IconButton(onClick = onScan) {
+                Icon(
+                    painterResource(R.drawable.ic_barcode),
+                    contentDescription = stringResource(R.string.planned_scan_item, item.name),
+                )
+            }
         }
         if (onSkip != null) {
             TextButton(onClick = onSkip) { Text(stringResource(R.string.planned_skip)) }

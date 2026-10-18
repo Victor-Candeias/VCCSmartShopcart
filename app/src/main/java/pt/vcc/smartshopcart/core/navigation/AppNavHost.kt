@@ -32,6 +32,7 @@ import pt.vcc.smartshopcart.feature.calculator.CalculatorScreen
 import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
 import pt.vcc.smartshopcart.feature.product.ItemEditorScreen
+import pt.vcc.smartshopcart.feature.scanner.ScannerScreen
 import pt.vcc.smartshopcart.domain.model.SessionMode
 import pt.vcc.smartshopcart.feature.session.PlannedSessionScreen
 import pt.vcc.smartshopcart.feature.settings.SettingsScreen
@@ -112,6 +113,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             composable<CalculatorRoute> {
                 CalculatorScreen(
                     onBack = { navController.popBackStack() },
+                    onScan = { sessionId -> navController.navigate(ScannerRoute(sessionId)) },
                     onEditItem = { itemId -> navController.navigate(ItemEditRoute(itemId)) },
                     onSessionClosed = navController::closeSession,
                 )
@@ -119,11 +121,18 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             composable<PlannedSessionRoute> {
                 PlannedSessionScreen(
                     onBack = { navController.popBackStack() },
+                    onScan = { sessionId, listItemId -> navController.navigate(ScannerRoute(sessionId, listItemId)) },
                     onEditItem = { itemId -> navController.navigate(ItemEditRoute(itemId)) },
                     onSessionClosed = navController::closeSession,
                 )
             }
             composable<ItemEditRoute> { ItemEditorScreen(onBack = { navController.popBackStack() }) }
+            composable<ScannerRoute> {
+                ScannerScreen(
+                    onBack = { navController.popBackStack() },
+                    onAdded = { navController.popBackStack() },
+                )
+            }
         }
     }
 }
