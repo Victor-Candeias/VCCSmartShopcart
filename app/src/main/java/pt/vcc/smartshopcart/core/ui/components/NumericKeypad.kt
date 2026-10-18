@@ -57,13 +57,13 @@ fun NumericKeypad(
         listOf(KeypadKey.Digit(7), KeypadKey.Digit(8), KeypadKey.Digit(9)),
         listOf(KeypadKey.Comma, KeypadKey.Digit(0), KeypadKey.Backspace),
     )
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         rows.forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { key ->
                     FilledTonalButton(
                         onClick = { onKey(key) },
-                        modifier = Modifier.weight(1f).height(56.dp),
+                        modifier = Modifier.weight(1f).height(48.dp),
                     ) {
                         when (key) {
                             is KeypadKey.Digit -> Text(key.value.toString(), style = MaterialTheme.typography.headlineSmall)
