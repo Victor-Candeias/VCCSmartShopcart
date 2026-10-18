@@ -45,9 +45,9 @@ Faça cópia de segurança de ambos; sem a mesma keystore não é possível atua
 
    ```powershell
    .\gradlew.bat :app:assembleRelease
-   & "$env:ANDROID_HOME\build-tools\<versão>\apksigner.bat" verify --print-certs app\build\outputs\apk\release\app-release.apk
+   & "$env:ANDROID_HOME\build-tools\<versão>\apksigner.bat" verify --print-certs app\build\outputs\apk\release\VCCSmartShopcart-<versão>-release.apk
    ```
 
-O APK fica em `app\build\outputs\apk\release\app-release.apk`. Sem `keystore.properties` o build de release
+O APK fica em `app\build\outputs\apk\release\VCCSmartShopcart-<versão>-release.apk`. Sem `keystore.properties` o build de release
 é gerado sem assinatura. Como as builds debug e release usam chaves diferentes, trocar entre elas exige
 desinstalar a app (os dados locais são apagados).

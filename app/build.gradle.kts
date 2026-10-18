@@ -10,6 +10,9 @@ plugins {
 
 val appVersionName = "0.1.0"
 
+// APK gerado como VCCSmartShopcart-<versão>-<buildType>.apk
+base.archivesName = "VCCSmartShopcart-$appVersionName"
+
 // Assinatura local de release: keystore.properties e a keystore ficam fora do Git (ver README).
 val keystoreProperties = Properties().apply {
     val file = rootProject.file("keystore.properties")
