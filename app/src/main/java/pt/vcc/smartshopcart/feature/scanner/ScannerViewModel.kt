@@ -14,49 +14,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import pt.vcc.smartshopcart.core.money.LineTotalCalculator
-import pt.vcc.smartshopcart.core.money.MoneyFormatter
-import pt.vcc.smartshopcart.core.money.MoneyParser
-import pt.vcc.smartshopcart.core.money.QuantityParser
 import pt.vcc.smartshopcart.core.navigation.ScannerRoute
-import pt.vcc.smartshopcart.domain.model.MeasureUnit
+import pt.vcc.smartshopcart.core.ocr.OcrLine
+import pt.vcc.smartshopcart.core.ocr.PriceCandidateParser
 import pt.vcc.smartshopcart.domain.model.SessionStatus
 import pt.vcc.smartshopcart.domain.model.ShoppingListItem
 import pt.vcc.smartshopcart.domain.repository.ShoppingListRepository
 import pt.vcc.smartshopcart.domain.repository.ShoppingSessionRepository
-import pt.vcc.smartshopcart.domain.usecase.AddScannedItemUseCase
-import pt.vcc.smartshopcart.domain.usecase.ProductLookupStatus
+import pt.vcc.smartshopcart.domain.usecase.CaptureConfirmation
+import pt.vcc.smartshopcart.domain.usecase.ConfirmCaptureUseCase
+import pt.vcc.smartshopcart.domain.usecase.OcrCapture
 import pt.vcc.smartshopcart.domain.usecase.ResolveProductResult
 import pt.vcc.smartshopcart.domain.usecase.ResolveProductUseCase
-import pt.vcc.smartshopcart.domain.usecase.ScannedItemInput
 import pt.vcc.smartshopcart.domain.usecase.SessionNotActiveException
-import java.io.Serializable
-import java.math.BigDecimal
 import javax.inject.Inject
-
-/** Rascunho do passo de confirmação (D25); sobrevive à recriação do processo via SavedStateHandle. */
-data class ScanDraft(
-    val barcode: String,
-    val status: ProductLookupStatus,
-    val productId: String? = null,
-    val brand: String? = null,
-    val quantityLabel: String? = null,
-    val name: String = "",
-    val price: String = "",
-    val quantity: String = "1",
-    val unit: MeasureUnit = MeasureUnit.UN,
-    val suggestedPriceCents: Long? = null,
-    val suggestedStoreName: String? = null,
-) : Serializable {
-    val priceCents: Long? get() = MoneyParser.parseToCents(price)?.takeIf { it > 0 }
-    val quantityValue: BigDecimal? get() = QuantityParser.parse(quantity)
-    val totalCents: Long?
-        get() {
-            val p = priceCents ?: return null
-            val q = quantityValue ?: return null
-            return LineTotalCalculator.lineTotalCents(p, q, unit)
-        }
-}
 
 enum class ScanPhase { SCANNING, RESOLVING, CONFIRM }
 
@@ -68,6 +39,10 @@ data class ScannerUiState(
     val phase: ScanPhase = ScanPhase.SCANNING,
     val multipleCodes: Boolean = false,
     val invalidCode: String? = null,
+    /** A fotografia não tinha código nem preço legível. */
+    val nothingRecognized: Boolean = false,
+    /** Uma fotografia está a ser processada. */
+    val recognizing: Boolean = false,
     val draft: ScanDraft? = null,
     val saving: Boolean = false,
 )
@@ -83,7 +58,7 @@ class ScannerViewModel @Inject constructor(
     private val sessions: ShoppingSessionRepository,
     private val lists: ShoppingListRepository,
     private val resolveProduct: ResolveProductUseCase,
-    private val addScannedItem: AddScannedItemUseCase,
+    private val confirmCapture: ConfirmCaptureUseCase,
 ) : ViewModel() {
 
     private val route = savedStateHandle.toRoute<ScannerRoute>()
@@ -117,10 +92,11 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    /** Valores lidos pela câmara num frame. */
+    /** Valores lidos pela câmara em tempo real (só enquanto ainda não há produto no rascunho). */
     fun onCodesDetected(codes: List<String>) {
         val current = _state.value
-        if (current.loading || current.phase != ScanPhase.SCANNING) return
+        if (current.loading || current.phase != ScanPhase.SCANNING || current.recognizing) return
+        if (current.draft?.barcode != null) return
         if (codes.size > 1) {
             _state.update { it.copy(multipleCodes = true) }
             return
@@ -135,7 +111,42 @@ class ScannerViewModel @Inject constructor(
         resolve(code.filter(Char::isDigit), manual = true)
     }
 
-    fun onDismissInvalidCode() = _state.update { it.copy(invalidCode = null) }
+    fun onPhotoStarted() = _state.update { it.copy(recognizing = true, nothingRecognized = false, multipleCodes = false) }
+
+    fun onPhotoFailed() = _state.update { it.copy(recognizing = false, nothingRecognized = true) }
+
+    /**
+     * Resultado de uma fotografia (§5.1 A): código e texto lidos da mesma imagem. Junta-se ao rascunho
+     * existente (§5.1 B); nada é adicionado sem confirmação.
+     */
+    fun onPhotoRecognized(barcodes: List<String>, lines: List<OcrLine>) {
+        if (_state.value.phase != ScanPhase.SCANNING) return
+        val codes = barcodes.distinct()
+        if (codes.size > 1) {
+            _state.update { it.copy(recognizing = false, multipleCodes = true) }
+            return
+        }
+        val prices = PriceCandidateParser.parse(lines)
+        viewModelScope.launch {
+            var draft = _state.value.draft
+            var productFound = false
+            codes.singleOrNull()?.let { code ->
+                val result = resolveProduct(code, storeId)
+                if (result is ResolveProductResult.Resolved) {
+                    draft = CaptureDraftReducer.withProduct(draft, result, listItem)
+                    productFound = true
+                }
+            }
+            val withPrices = CaptureDraftReducer.withPrices(draft, prices, listItem)
+            if (withPrices == null && !productFound) {
+                _state.update { it.copy(recognizing = false, nothingRecognized = true) }
+                return@launch
+            }
+            showDraft(withPrices ?: draft!!)
+        }
+    }
+
+    fun onDismissMessage() = _state.update { it.copy(invalidCode = null, nothingRecognized = false) }
 
     fun onDraftChange(transform: (ScanDraft) -> ScanDraft) {
         val draft = _state.value.draft ?: return
@@ -144,11 +155,27 @@ class ScannerViewModel @Inject constructor(
         savedStateHandle[KEY_DRAFT] = updated
     }
 
+    fun onSelectCandidate(index: Int) = onDraftChange { CaptureDraftReducer.selectCandidate(it, index) }
+
+    /** Volta à câmara mantendo o rascunho, para ler o código ou fotografar o preço em falta. */
+    fun onCaptureMore() {
+        if (_state.value.draft == null) return
+        _state.update { it.copy(phase = ScanPhase.SCANNING, multipleCodes = false, nothingRecognized = false) }
+    }
+
+    /** Volta à confirmação sem mais capturas. */
+    fun onReviewDraft() {
+        if (_state.value.draft == null) return
+        _state.update { it.copy(phase = ScanPhase.CONFIRM, multipleCodes = false, nothingRecognized = false) }
+    }
+
     /** Descarta o rascunho e volta à câmara; o mesmo código continua ignorado durante 3 s (D22). */
     fun onScanAnother() {
-        _state.value.draft?.let { debouncer.mark(it.barcode, SystemClock.elapsedRealtime()) }
+        _state.value.draft?.barcode?.let { debouncer.mark(it, SystemClock.elapsedRealtime()) }
         savedStateHandle.remove<ScanDraft>(KEY_DRAFT)
-        _state.update { it.copy(phase = ScanPhase.SCANNING, draft = null, multipleCodes = false) }
+        _state.update {
+            it.copy(phase = ScanPhase.SCANNING, draft = null, multipleCodes = false, nothingRecognized = false)
+        }
     }
 
     fun onConfirm() {
@@ -159,9 +186,9 @@ class ScannerViewModel @Inject constructor(
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
             try {
-                addScannedItem(
+                confirmCapture(
                     route.sessionId,
-                    ScannedItemInput(
+                    CaptureConfirmation(
                         barcode = draft.barcode,
                         productId = draft.productId,
                         name = draft.name,
@@ -169,6 +196,9 @@ class ScannerViewModel @Inject constructor(
                         unit = draft.unit,
                         unitPriceCents = price,
                         suggestedPriceCents = draft.suggestedPriceCents,
+                        ocr = draft.ocrRawText?.takeIf { draft.priceCandidates.isNotEmpty() }?.let {
+                            OcrCapture(it, draft.priceCandidates, draft.ocrPriceCents)
+                        },
                         shoppingListItemId = route.listItemId,
                     ),
                 )
@@ -188,37 +218,24 @@ class ScannerViewModel @Inject constructor(
                 ResolveProductResult.InvalidBarcode -> _state.update {
                     it.copy(phase = ScanPhase.SCANNING, invalidCode = if (manual) code else null)
                 }
-                is ResolveProductResult.Resolved -> {
-                    val draft = buildDraft(result)
-                    savedStateHandle[KEY_DRAFT] = draft
-                    _state.update { it.copy(phase = ScanPhase.CONFIRM, draft = draft) }
-                }
+                is ResolveProductResult.Resolved ->
+                    showDraft(CaptureDraftReducer.withProduct(_state.value.draft, result, listItem))
             }
         }
     }
 
-    private fun buildDraft(result: ResolveProductResult.Resolved): ScanDraft {
-        val planned = listItem
-        val suggestion = result.suggestedPrice
-        val unit = planned?.unit ?: suggestion?.unit ?: MeasureUnit.UN
-        // Só sugere o último preço se for comparável (mesma unidade de preço).
-        val usableSuggestion = suggestion?.takeIf { it.unit.priceUnit == unit.priceUnit }
-        val priceCents = usableSuggestion?.priceCents ?: planned?.estimatedPriceCents
-        return ScanDraft(
-            barcode = result.barcode,
-            status = result.status,
-            productId = result.product?.id,
-            brand = result.product?.brand,
-            quantityLabel = result.product?.quantityLabel,
-            name = result.product?.name ?: planned?.name.orEmpty(),
-            price = priceCents?.let(MoneyFormatter::formatPlain).orEmpty(),
-            quantity = QuantityParser.format(planned?.plannedQuantity ?: BigDecimal.ONE),
-            unit = unit,
-            suggestedPriceCents = usableSuggestion?.priceCents,
-            suggestedStoreName = usableSuggestion?.storeName,
-        )
+    private fun showDraft(draft: ScanDraft) {
+        savedStateHandle[KEY_DRAFT] = draft
+        _state.update {
+            it.copy(
+                phase = ScanPhase.CONFIRM,
+                draft = draft,
+                recognizing = false,
+                multipleCodes = false,
+                nothingRecognized = false,
+            )
+        }
     }
-
     private companion object {
         const val KEY_DRAFT = "scan_draft"
     }

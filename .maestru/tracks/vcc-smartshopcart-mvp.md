@@ -20,6 +20,6 @@ status: active
 | sc-02-calculator | Calculadora rápida: sessões, teclado, linhas, totais e orçamento | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-01-foundation | [sc-02-calculator](../specs/vcc-smartshopcart-mvp/sc-02-calculator-spec.md) |
 | sc-03-lists | Listas planeadas: CRUD, itens e sessão ligada à lista | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-02-calculator | [sc-03-lists](../specs/vcc-smartshopcart-mvp/sc-03-lists-spec.md) |
 | sc-04-barcode-catalog | Scanner de código de barras e catálogo Open Food Facts | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-01-foundation | [sc-04-barcode-catalog](../specs/vcc-smartshopcart-mvp/sc-04-barcode-catalog-spec.md) |
-| sc-05-ocr-capture | OCR de preços, parser e captura combinada com confirmação | backlog | 2026-10-18 | developer | critical |  |  | sc-04-barcode-catalog |  |
+| sc-05-ocr-capture | OCR de preços, parser e captura combinada com confirmação | done | 2026-10-18 | developer | critical | 2026-10-18 |  | sc-04-barcode-catalog | [sc-05-ocr-capture](../specs/vcc-smartshopcart-mvp/sc-05-ocr-capture-spec.md) |
 | sc-06-history-stabilization | Histórico, definições, acessibilidade e APK assinado | backlog | 2026-10-18 | developer | high |  |  | sc-03-lists, sc-05-ocr-capture |  |
 <!-- /maestru:work-items-list -->

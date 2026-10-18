@@ -7,15 +7,20 @@ import pt.vcc.smartshopcart.core.network.NetworkMonitor
 import pt.vcc.smartshopcart.domain.repository.RemoteProductCatalog
 import pt.vcc.smartshopcart.domain.repository.RemoteProductResult
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
+import pt.vcc.smartshopcart.domain.model.CaptureStatus
+import pt.vcc.smartshopcart.domain.model.PriceCandidate
+import pt.vcc.smartshopcart.domain.model.PriceCapture
 import pt.vcc.smartshopcart.domain.model.PriceSource
 import pt.vcc.smartshopcart.domain.model.Product
 import pt.vcc.smartshopcart.domain.model.ProductPrice
 import pt.vcc.smartshopcart.domain.model.ProductSource
 import pt.vcc.smartshopcart.domain.model.SessionStatus
 import pt.vcc.smartshopcart.domain.model.ShoppingSessionItem
+import pt.vcc.smartshopcart.domain.repository.PriceCaptureRepository
 import pt.vcc.smartshopcart.domain.repository.ProductRepository
 import pt.vcc.smartshopcart.domain.repository.ShoppingListRepository
 import pt.vcc.smartshopcart.domain.repository.ShoppingSessionRepository
+import pt.vcc.smartshopcart.domain.repository.TransactionRunner
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -100,38 +105,51 @@ class ResolveProductUseCase @Inject constructor(
     }
 }
 
-data class ScannedItemInput(
-    val barcode: String,
+/** Dados OCR que acompanham a confirmação (D8); a fotografia nunca é guardada. */
+data class OcrCapture(
+    val rawText: String,
+    val candidates: List<PriceCandidate>,
+    /** Preço proposto pelo OCR (candidato selecionado), para saber se o utilizador o alterou. */
+    val detectedPriceCents: Long?,
+)
+
+data class CaptureConfirmation(
+    val barcode: String?,
     val productId: String?,
     val name: String?,
     val quantity: BigDecimal,
     val unit: MeasureUnit,
     val unitPriceCents: Long,
     val suggestedPriceCents: Long? = null,
+    val ocr: OcrCapture? = null,
     val shoppingListItemId: String? = null,
 )
 
 /**
- * Confirma um produto lido por código de barras: cria um produto manual quando o código não é
- * conhecido e há nome (§5.1 "Produto não encontrado"), liga o item planeado ao produto e
- * adiciona o item à sessão. A fonte é `HISTORY` só se o preço sugerido for aceite sem alteração.
+ * Confirma uma captura do scanner (§8 `ConfirmCaptureUseCase`), numa única transação:
+ * cria um produto manual quando o código não é conhecido e há nome (§5.1), liga o item planeado ao
+ * produto, adiciona o item à sessão e regista a leitura OCR como `PriceCapture`.
+ * Fonte do preço: `OCR` se o preço lido for aceite sem alteração, `HISTORY` se for o último preço
+ * sugerido (D17), senão `MANUAL`.
  */
-class AddScannedItemUseCase @Inject constructor(
+class ConfirmCaptureUseCase @Inject constructor(
     private val sessions: ShoppingSessionRepository,
     private val products: ProductRepository,
     private val lists: ShoppingListRepository,
+    private val captures: PriceCaptureRepository,
+    private val transactions: TransactionRunner,
     private val addItem: AddSessionItemUseCase,
     private val ids: IdProvider,
     private val time: TimeProvider,
 ) {
-    suspend operator fun invoke(sessionId: String, input: ScannedItemInput): ShoppingSessionItem {
+    suspend operator fun invoke(sessionId: String, input: CaptureConfirmation): ShoppingSessionItem = transactions.run {
         if (sessions.getSession(sessionId)?.status != SessionStatus.ACTIVE) throw SessionNotActiveException()
         val name = input.name?.trim()?.takeIf { it.isNotEmpty() }
-        val productId = input.productId ?: name?.let {
+        val productId = input.productId ?: if (input.barcode != null && name != null) {
             products.findByBarcode(input.barcode)?.id ?: Product(
                 id = ids.newId(),
                 barcode = input.barcode,
-                name = it,
+                name = name,
                 brand = null,
                 quantityLabel = null,
                 category = null,
@@ -139,6 +157,8 @@ class AddScannedItemUseCase @Inject constructor(
                 source = ProductSource.MANUAL,
                 updatedAt = time.now(),
             ).also { product -> products.save(product) }.id
+        } else {
+            null
         }
         input.shoppingListItemId?.let { listItemId ->
             val listItem = lists.getItem(listItemId)
@@ -146,12 +166,12 @@ class AddScannedItemUseCase @Inject constructor(
                 lists.upsertItem(listItem.copy(productId = productId))
             }
         }
-        val source = if (input.suggestedPriceCents != null && input.suggestedPriceCents == input.unitPriceCents) {
-            PriceSource.HISTORY
-        } else {
-            PriceSource.MANUAL
+        val source = when (input.unitPriceCents) {
+            input.ocr?.detectedPriceCents -> PriceSource.OCR
+            input.suggestedPriceCents -> PriceSource.HISTORY
+            else -> PriceSource.MANUAL
         }
-        return addItem(
+        val item = addItem(
             sessionId,
             NewSessionItem(
                 unitPriceCents = input.unitPriceCents,
@@ -164,5 +184,20 @@ class AddScannedItemUseCase @Inject constructor(
                 priceSource = source,
             ),
         )
+        input.ocr?.let { ocr ->
+            captures.add(
+                PriceCapture(
+                    id = ids.newId(),
+                    sessionItemId = item.id,
+                    rawText = ocr.rawText,
+                    candidates = ocr.candidates,
+                    detectedPriceCents = ocr.detectedPriceCents,
+                    confirmedPriceCents = input.unitPriceCents,
+                    status = CaptureStatus.CONFIRMED,
+                    capturedAt = time.now(),
+                ),
+            )
+        }
+        item
     }
 }

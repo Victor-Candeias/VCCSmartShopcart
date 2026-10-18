@@ -6,7 +6,10 @@ title: "OCR de preços, parser e captura combinada com confirmação"
 created: 2026-10-18
 owner: developer
 priority: critical
-status: backlog
+status: done
+completed: 2026-10-18
+specs:
+  - sc-05-ocr-capture-spec
 track: vcc-smartshopcart-mvp
 blocked-by:
   - sc-04-barcode-catalog

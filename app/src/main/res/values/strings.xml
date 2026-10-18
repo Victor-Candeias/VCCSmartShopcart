@@ -112,9 +112,9 @@
 
     <!-- Leitor de código de barras -->
     <string name="action_scan">Ler código de barras</string>
-    <string name="scanner_title">Ler código de barras</string>
+    <string name="scanner_title">Ler produto e preço</string>
     <string name="scanner_for_item">Para: %1$s</string>
-    <string name="scanner_hint">Aponte a câmara para o código de barras.</string>
+    <string name="scanner_hint">Aponte para o código de barras ou fotografe a etiqueta com o preço.</string>
     <string name="scanner_multiple">Há vários códigos à vista. Enquadre apenas um.</string>
     <string name="scanner_manual">Introduzir código</string>
     <string name="scanner_manual_label">EAN-8, EAN-13 ou UPC-A</string>
@@ -134,7 +134,24 @@
     <string name="scanner_last_price">Último preço: %1$s</string>
     <string name="scanner_last_price_store">Último preço em %2$s: %1$s</string>
     <string name="scanner_scan_another">Ler outro</string>
-    <string name="planned_scan_item">Ler código de barras de %1$s</string>
+    <string name="scanner_photo">Fotografar</string>
+    <string name="scanner_recognizing">A ler a fotografia…</string>
+    <string name="scanner_nothing">Não foi reconhecido código nem preço. Tente de novo, aproxime a etiqueta ou introduza manualmente.</string>
+    <string name="scanner_have_product">Produto: %1$s — fotografe a etiqueta do preço.</string>
+    <string name="scanner_have_price">Preço capturado: %1$s — leia o código de barras.</string>
+    <string name="scanner_review">Rever</string>
+    <string name="scanner_read_code">Ler código</string>
+    <string name="scanner_photo_price">Fotografar preço</string>
+    <string name="scanner_no_barcode">Sem código de barras. Indique o nome ou leia o código.</string>
+    <string name="scanner_prices_found">Preços encontrados na etiqueta</string>
+    <string name="scanner_price_auto">Preço lido automaticamente. Confirme antes de adicionar.</string>
+    <string name="scanner_price_choose">Foram encontrados vários preços. Escolha o correto.</string>
+    <string name="scanner_kind_sale">preço</string>
+    <string name="scanner_kind_old">anterior</string>
+    <string name="scanner_kind_per_kg">por kg</string>
+    <string name="scanner_kind_per_l">por L</string>
+    <string name="scanner_kind_discount">desconto</string>
+    <string name="scanner_kind_unknown">valor</string>    <string name="planned_scan_item">Ler código de barras de %1$s</string>
 
     <!-- Histórico -->
     <string name="history_empty">Ainda não há compras concluídas.</string>

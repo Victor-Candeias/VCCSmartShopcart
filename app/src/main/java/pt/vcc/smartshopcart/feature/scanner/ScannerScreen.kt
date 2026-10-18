@@ -6,6 +6,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -14,6 +17,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +36,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +55,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -78,8 +85,11 @@ import pt.vcc.smartshopcart.core.ui.components.NameField
 import pt.vcc.smartshopcart.core.ui.components.QuantityField
 import pt.vcc.smartshopcart.core.ui.components.UnitSelector
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
+import pt.vcc.smartshopcart.domain.model.PriceKind
 import pt.vcc.smartshopcart.domain.usecase.ProductLookupStatus
 import java.util.concurrent.Executors
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,8 +147,12 @@ fun ScannerScreen(
                 Text(stringResource(R.string.scanner_resolving), Modifier.padding(top = 16.dp))
             }
             else -> ScanningContent(
-                multipleCodes = state.multipleCodes,
+                state = state,
                 onCodes = viewModel::onCodesDetected,
+                onPhotoStarted = viewModel::onPhotoStarted,
+                onPhotoRecognized = { viewModel.onPhotoRecognized(it.barcodes, it.lines) },
+                onPhotoFailed = viewModel::onPhotoFailed,
+                onReview = viewModel::onReviewDraft,
                 onManualEntry = { manualEntry = true },
                 modifier = modifier,
             )
@@ -156,11 +170,11 @@ fun ScannerScreen(
     }
     state.invalidCode?.let { code ->
         AlertDialog(
-            onDismissRequest = viewModel::onDismissInvalidCode,
+            onDismissRequest = viewModel::onDismissMessage,
             title = { Text(stringResource(R.string.scanner_invalid_title)) },
             text = { Text(stringResource(R.string.scanner_invalid_text, code)) },
             confirmButton = {
-                TextButton(onClick = viewModel::onDismissInvalidCode) { Text(stringResource(R.string.action_close)) }
+                TextButton(onClick = viewModel::onDismissMessage) { Text(stringResource(R.string.action_close)) }
             },
         )
     }
@@ -168,8 +182,12 @@ fun ScannerScreen(
 
 @Composable
 private fun ScanningContent(
-    multipleCodes: Boolean,
+    state: ScannerUiState,
     onCodes: (List<String>) -> Unit,
+    onPhotoStarted: () -> Unit,
+    onPhotoRecognized: (CaptureRecognition) -> Unit,
+    onPhotoFailed: () -> Unit,
+    onReview: () -> Unit,
     onManualEntry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -187,33 +205,62 @@ private fun ScanningContent(
             launcher.launch(Manifest.permission.CAMERA)
         }
     }
+    val imageCapture = remember {
+        ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build()
+    }
+    val recognizer = remember { PhotoRecognizer() }
+    DisposableEffect(recognizer) { onDispose { recognizer.close() } }
+    val scope = rememberCoroutineScope()
+    var cameraError by remember { mutableStateOf(false) }
+    val draft = state.draft
 
     Column(modifier.fillMaxSize()) {
         Box(Modifier.weight(1f).fillMaxWidth(), Alignment.Center) {
             if (hasPermission) {
-                var cameraError by remember { mutableStateOf(false) }
                 if (cameraError) {
                     Text(stringResource(R.string.scanner_camera_unavailable), Modifier.padding(24.dp), textAlign = TextAlign.Center)
                 } else {
-                    CameraPreview(onCodes = onCodes, onError = { cameraError = true }, modifier = Modifier.fillMaxSize())
+                    CameraPreview(
+                        imageCapture = imageCapture,
+                        onCodes = onCodes,
+                        onError = { cameraError = true },
+                        modifier = Modifier.fillMaxSize(),
+                    )
                     Box(
                         Modifier
                             .fillMaxWidth(0.8f)
                             .height(160.dp)
                             .border(BorderStroke(3.dp, Color.White), RoundedCornerShape(12.dp)),
                     )
+                    if (state.recognizing) CircularProgressIndicator()
                     Surface(
                         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
                     ) {
-                        Text(
-                            stringResource(if (multipleCodes) R.string.scanner_multiple else R.string.scanner_hint),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .semantics { liveRegion = LiveRegionMode.Polite },
-                        )
+                        val message = when {
+                            state.recognizing -> stringResource(R.string.scanner_recognizing)
+                            state.multipleCodes -> stringResource(R.string.scanner_multiple)
+                            state.nothingRecognized -> stringResource(R.string.scanner_nothing)
+                            draft?.barcode != null ->
+                                stringResource(R.string.scanner_have_product, draft.name.ifBlank { draft.barcode })
+                            draft?.ocrPriceCents != null ->
+                                stringResource(R.string.scanner_have_price, MoneyFormatter.format(draft.ocrPriceCents!!))
+                            else -> stringResource(R.string.scanner_hint)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                message,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    .semantics { liveRegion = LiveRegionMode.Polite },
+                            )
+                            if (draft != null && !state.recognizing) {
+                                TextButton(onClick = onReview) { Text(stringResource(R.string.scanner_review)) }
+                            }
+                        }
                     }
                 }
             } else {
@@ -229,15 +276,48 @@ private fun ScanningContent(
                 }
             }
         }
-        Button(
-            onClick = onManualEntry,
-            modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
-        ) { Text(stringResource(R.string.scanner_manual)) }
+        Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(
+                onClick = onManualEntry,
+                enabled = !state.recognizing,
+                modifier = Modifier.weight(1f).height(56.dp),
+            ) { Text(stringResource(R.string.scanner_manual)) }
+            Button(
+                onClick = {
+                    onPhotoStarted()
+                    imageCapture.takePicture(
+                        ContextCompat.getMainExecutor(context),
+                        object : ImageCapture.OnImageCapturedCallback() {
+                            override fun onCaptureSuccess(image: ImageProxy) {
+                                scope.launch {
+                                    try {
+                                        onPhotoRecognized(recognizer.recognize(image))
+                                    } catch (e: CancellationException) {
+                                        throw e
+                                    } catch (_: Exception) {
+                                        onPhotoFailed()
+                                    }
+                                }
+                            }
+
+                            override fun onError(exception: ImageCaptureException) = onPhotoFailed()
+                        },
+                    )
+                },
+                enabled = hasPermission && !cameraError && !state.recognizing,
+                modifier = Modifier.weight(1f).height(56.dp),
+            ) { Text(stringResource(R.string.scanner_photo)) }
+        }
     }
 }
 
 @Composable
-private fun CameraPreview(onCodes: (List<String>) -> Unit, onError: () -> Unit, modifier: Modifier = Modifier) {
+private fun CameraPreview(
+    imageCapture: ImageCapture,
+    onCodes: (List<String>) -> Unit,
+    onError: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentOnCodes by rememberUpdatedState(onCodes)
@@ -265,7 +345,7 @@ private fun CameraPreview(onCodes: (List<String>) -> Unit, onError: () -> Unit, 
                     .build()
                     .also { it.setAnalyzer(executor, analyzer) }
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+                cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, analysis, imageCapture)
             } catch (_: Exception) {
                 currentOnError()
             }
@@ -281,7 +361,6 @@ private fun CameraPreview(onCodes: (List<String>) -> Unit, onError: () -> Unit, 
 
     AndroidView(factory = { previewView }, modifier = modifier)
 }
-
 @Composable
 private fun ManualCodeDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var code by rememberSaveable { mutableStateOf("") }
@@ -329,8 +408,11 @@ private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, m
             modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(draft.status.messageRes()), style = MaterialTheme.typography.titleSmall)
-                Text(stringResource(R.string.item_barcode, draft.barcode), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(draft.status?.messageRes() ?: R.string.scanner_no_barcode),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                draft.barcode?.let { Text(stringResource(R.string.item_barcode, it), style = MaterialTheme.typography.bodyMedium) }
                 listOfNotNull(draft.brand, draft.quantityLabel).takeIf { it.isNotEmpty() }?.let {
                     Text(it.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
                 }
@@ -339,6 +421,9 @@ private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, m
         NameField(draft.name, { v -> viewModel.onDraftChange { it.copy(name = v) } }, stringResource(R.string.item_name))
         Text(stringResource(R.string.item_unit), style = MaterialTheme.typography.labelLarge)
         UnitSelector(draft.unit, { unit -> viewModel.onDraftChange { it.copy(unit = unit) } })
+        if (draft.priceCandidates.isNotEmpty()) {
+            PriceCandidates(draft, viewModel::onSelectCandidate)
+        }
         AmountField(
             draft.price,
             { v -> viewModel.onDraftChange { it.copy(price = v) } },
@@ -362,6 +447,13 @@ private fun ConfirmContent(state: ScannerUiState, viewModel: ScannerViewModel, m
             stringResource(R.string.item_line_total, draft.totalCents?.let(MoneyFormatter::format) ?: "—"),
             style = MaterialTheme.typography.titleLarge,
         )
+        OutlinedButton(
+            onClick = viewModel::onCaptureMore,
+            enabled = !state.saving,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+        ) {
+            Text(stringResource(if (draft.barcode == null) R.string.scanner_read_code else R.string.scanner_photo_price))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
                 onClick = viewModel::onScanAnother,
@@ -384,4 +476,35 @@ private fun ProductLookupStatus.messageRes(): Int = when (this) {
     ProductLookupStatus.OFFLINE -> R.string.scanner_status_offline
     ProductLookupStatus.REMOTE_ERROR -> R.string.scanner_status_remote_error
     ProductLookupStatus.INTERNAL_CODE -> R.string.scanner_status_internal
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PriceCandidates(draft: ScanDraft, onSelect: (Int) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.scanner_prices_found), style = MaterialTheme.typography.labelLarge)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            draft.priceCandidates.forEachIndexed { index, candidate ->
+                FilterChip(
+                    selected = index == draft.selectedCandidate,
+                    onClick = { onSelect(index) },
+                    label = { Text("${MoneyFormatter.format(candidate.cents)} · ${stringResource(candidate.kind.labelRes())}") },
+                )
+            }
+        }
+        Text(
+            stringResource(if (draft.priceFromOcr) R.string.scanner_price_auto else R.string.scanner_price_choose),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
+    }
+}
+
+private fun PriceKind.labelRes(): Int = when (this) {
+    PriceKind.SALE -> R.string.scanner_kind_sale
+    PriceKind.OLD -> R.string.scanner_kind_old
+    PriceKind.PER_KG -> R.string.scanner_kind_per_kg
+    PriceKind.PER_L -> R.string.scanner_kind_per_l
+    PriceKind.DISCOUNT -> R.string.scanner_kind_discount
+    PriceKind.UNKNOWN -> R.string.scanner_kind_unknown
 }

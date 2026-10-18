@@ -3,6 +3,7 @@ package pt.vcc.smartshopcart.domain.usecase
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -15,14 +16,21 @@ import org.robolectric.RobolectricTestRunner
 import pt.vcc.smartshopcart.core.common.IdProvider
 import pt.vcc.smartshopcart.core.common.TimeProvider
 import pt.vcc.smartshopcart.core.database.ShoppingDatabase
+import pt.vcc.smartshopcart.data.repository.RoomPriceCaptureRepository
 import pt.vcc.smartshopcart.data.repository.RoomProductRepository
 import pt.vcc.smartshopcart.data.repository.RoomShoppingListRepository
 import pt.vcc.smartshopcart.data.repository.RoomShoppingSessionRepository
 import pt.vcc.smartshopcart.data.repository.RoomStoreRepository
+import pt.vcc.smartshopcart.data.repository.RoomTransactionRunner
+import pt.vcc.smartshopcart.domain.model.CaptureStatus
 import pt.vcc.smartshopcart.domain.model.MeasureUnit
+import pt.vcc.smartshopcart.domain.model.PriceCandidate
+import pt.vcc.smartshopcart.domain.model.PriceCapture
+import pt.vcc.smartshopcart.domain.model.PriceKind
 import pt.vcc.smartshopcart.domain.model.PriceSource
 import pt.vcc.smartshopcart.domain.model.ProductSource
 import pt.vcc.smartshopcart.domain.model.SessionMode
+import pt.vcc.smartshopcart.domain.repository.PriceCaptureRepository
 import pt.vcc.smartshopcart.domain.repository.RemoteProduct
 import pt.vcc.smartshopcart.domain.repository.RemoteProductResult
 import java.math.BigDecimal
@@ -36,7 +44,8 @@ class ProductUseCasesTest {
     private lateinit var lists: RoomShoppingListRepository
     private lateinit var start: StartShoppingSessionUseCase
     private lateinit var complete: CompleteShoppingSessionUseCase
-    private lateinit var addScanned: AddScannedItemUseCase
+    private lateinit var captures: RoomPriceCaptureRepository
+    private lateinit var addScanned: ConfirmCaptureUseCase
     private lateinit var resolve: ResolveProductUseCase
     private var clock = 1_000L
     private var nextId = 0
@@ -58,7 +67,8 @@ class ProductUseCasesTest {
         lists = RoomShoppingListRepository(db)
         start = StartShoppingSessionUseCase(sessions, RoomStoreRepository(db, ids, time), ids, time)
         complete = CompleteShoppingSessionUseCase(sessions, ids, time)
-        addScanned = AddScannedItemUseCase(sessions, products, lists, AddSessionItemUseCase(sessions, ids, time), ids, time)
+        captures = RoomPriceCaptureRepository(db)
+        addScanned = confirmUseCase(captures)
         resolve = ResolveProductUseCase(
             products = products,
             remote = { barcode -> remoteCalls += barcode; remoteResult },
@@ -74,8 +84,27 @@ class ProductUseCasesTest {
     private suspend fun startSession(store: String? = "Continente"): String =
         (start(SessionMode.CALCULATOR, storeName = store) as StartSessionResult.Started).session.id
 
-    private fun scanned(barcode: String, name: String?, price: Long, suggested: Long? = null, listItemId: String? = null) =
-        ScannedItemInput(barcode, null, name, BigDecimal.ONE, MeasureUnit.UN, price, suggested, listItemId)
+    private fun confirmUseCase(captureRepository: PriceCaptureRepository) = ConfirmCaptureUseCase(
+        sessions, products, lists, captureRepository, RoomTransactionRunner(db), AddSessionItemUseCase(sessions, ids, time), ids, time,
+    )
+
+    private fun scanned(
+        barcode: String?,
+        name: String?,
+        price: Long,
+        suggested: Long? = null,
+        listItemId: String? = null,
+        ocr: OcrCapture? = null,
+    ) = CaptureConfirmation(barcode, null, name, BigDecimal.ONE, MeasureUnit.UN, price, suggested, ocr, listItemId)
+
+    private val labelOcr = OcrCapture(
+        rawText = "PROMO 1,49 €\n2,98 €/kg",
+        candidates = listOf(
+            PriceCandidate(149, PriceKind.SALE, 0.9f, "1,49 €"),
+            PriceCandidate(298, PriceKind.PER_KG, 0.7f, "2,98 €/kg"),
+        ),
+        detectedPriceCents = 149,
+    )
 
     @Test
     fun `codigo invalido nao consulta nada`() = runTest {
@@ -164,5 +193,62 @@ class ProductUseCasesTest {
         } catch (_: SessionNotActiveException) {
         }
         assertNull(products.findByBarcode(nutella))
+    }
+
+    @Test
+    fun `preco do OCR aceite grava item e leitura na mesma transacao`() = runTest {
+        val sessionId = startSession()
+
+        val item = addScanned(sessionId, scanned(nutella, "Nutella", 149, ocr = labelOcr))
+
+        assertEquals(PriceSource.OCR, item.priceSource)
+        val saved = captures.getForItem(item.id).single()
+        assertEquals(CaptureStatus.CONFIRMED, saved.status)
+        assertEquals(149L, saved.detectedPriceCents)
+        assertEquals(149L, saved.confirmedPriceCents)
+        assertEquals(labelOcr.candidates, saved.candidates)
+        assertEquals(labelOcr.rawText, saved.rawText)
+    }
+
+    @Test
+    fun `preco do OCR corrigido fica manual mas a leitura e guardada`() = runTest {
+        val sessionId = startSession()
+
+        val item = addScanned(sessionId, scanned(nutella, "Nutella", 159, ocr = labelOcr))
+
+        assertEquals(PriceSource.MANUAL, item.priceSource)
+        val saved = captures.getForItem(item.id).single()
+        assertEquals(149L, saved.detectedPriceCents)
+        assertEquals(159L, saved.confirmedPriceCents)
+    }
+
+    @Test
+    fun `preco sem codigo nao cria produto`() = runTest {
+        val sessionId = startSession()
+
+        val item = addScanned(sessionId, scanned(null, "Pão", 149, ocr = labelOcr))
+
+        assertNull(item.productId)
+        assertNull(item.barcode)
+        assertEquals("Pão", item.name)
+        assertEquals(1, captures.getForItem(item.id).size)
+    }
+
+    @Test
+    fun `falha ao gravar a leitura anula o item e o produto`() = runTest {
+        val sessionId = startSession()
+        val failing = confirmUseCase(object : PriceCaptureRepository {
+            override suspend fun add(capture: PriceCapture) = throw IllegalStateException("disco cheio")
+            override suspend fun getForItem(sessionItemId: String) = emptyList<PriceCapture>()
+        })
+
+        try {
+            failing(sessionId, scanned("2000000000008", "Queijo", 149, ocr = labelOcr))
+            throw AssertionError("Devia falhar")
+        } catch (_: IllegalStateException) {
+        }
+
+        assertTrue(sessions.observeSession(sessionId).first()!!.items.isEmpty())
+        assertNull(products.findByBarcode("2000000000008"))
     }
 }
