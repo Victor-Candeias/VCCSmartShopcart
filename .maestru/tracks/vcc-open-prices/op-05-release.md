@@ -6,7 +6,8 @@ title: "Atribuição ODbL, documentação e APK release 0.3.0 assinado"
 created: 2026-10-18
 owner: developer
 priority: medium
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - op-05-release-spec
 track: vcc-open-prices

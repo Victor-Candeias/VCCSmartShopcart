@@ -229,7 +229,7 @@
     <string name="settings_privacy">Privacidade</string>
     <string name="settings_privacy_text">Listas, compras e preços ficam apenas neste dispositivo. As fotografias são analisadas no momento e não são guardadas. Para identificar um produto só é enviado o código de barras ao Open Food Facts, sem dados pessoais.</string>
     <string name="settings_about">Sobre</string>
-    <string name="settings_about_summary">Versão, atribuição Open Food Facts e licenças</string>
+    <string name="settings_about_summary">Versão, atribuição Open Food Facts e Open Prices e licenças</string>
 
     <!-- Sobre -->
     <string name="about_version">Versão %1$s</string>
@@ -237,6 +237,9 @@
     <string name="about_off_title">Dados de produtos</string>
     <string name="about_off_text">Os nomes, marcas e quantidades dos produtos vêm do Open Food Facts (openfoodfacts.org), uma base de dados colaborativa disponibilizada sob a Open Database License (ODbL). Os conteúdos individuais estão sob a Database Contents License.</string>
     <string name="about_off_open">Abrir openfoodfacts.org</string>
+    <string name="about_prices_title">Preços de referência</string>
+    <string name="about_prices_text">Os preços em Portugal mostrados no scanner vêm do Open Prices (prices.openfoodfacts.org), um projeto do Open Food Facts com preços submetidos pela comunidade, disponibilizado sob a Open Database License (ODbL). São valores observados em datas e lojas concretas e servem apenas como referência; a app nunca envia preços para o Open Prices.</string>
+    <string name="about_prices_open">Abrir prices.openfoodfacts.org</string>
     <string name="about_licenses_title">Licenças de código aberto</string>
     <string name="about_licenses_text">Kotlin, kotlinx.coroutines e kotlinx.serialization, AndroidX e Jetpack Compose, Room, DataStore, CameraX, Hilt/Dagger, Retrofit e OkHttp são distribuídos sob a Apache License 2.0. O reconhecimento de códigos e de texto usa o Google ML Kit, sujeito aos termos do ML Kit.</string>
 </resources>

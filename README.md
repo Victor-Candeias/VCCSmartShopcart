@@ -2,12 +2,17 @@
 
 Aplicação Android nativa, offline-first, com dois modos de utilização: **calculadora rápida** e **lista planeada**,
 com scanner de código de barras e preço por OCR, identificação de produtos via Open Food Facts, orçamento e histórico local.
+No passo de confirmação do scanner é possível consultar **preços de referência em Portugal** (Open Prices, ODbL), guardados em
+cache local (Room v2) e usados apenas após confirmação explícita.
 
 ## Documentação
 
 - Documento de implementação: [Documents/Implementacao_MVP_App_Compras.md](Documents/Implementacao_MVP_App_Compras.md)
 - Decisões técnicas (prevalecem sobre o documento): [.maestru/docs/mvp-decisoes-tecnicas.md](.maestru/docs/mvp-decisoes-tecnicas.md)
 - Plano e work-items (Maestru): [.maestru/tracks/vcc-smartshopcart-mvp.md](.maestru/tracks/vcc-smartshopcart-mvp.md)
+- Integração Open Prices: [Documents/Integracao_Open_Prices_MVP_Android.md](Documents/Integracao_Open_Prices_MVP_Android.md),
+  decisões [.maestru/docs/open-prices-decisoes.md](.maestru/docs/open-prices-decisoes.md) e
+  work-items [.maestru/tracks/vcc-open-prices.md](.maestru/tracks/vcc-open-prices.md)
 
 ## Compilar e testar
 

@@ -27,8 +27,9 @@ import pt.vcc.smartshopcart.BuildConfig
 import pt.vcc.smartshopcart.R
 
 private const val OPEN_FOOD_FACTS_URL = "https://world.openfoodfacts.org"
+private const val OPEN_PRICES_URL = "https://prices.openfoodfacts.org"
 
-/** D24: versão, atribuição Open Food Facts (ODbL) e licenças. */
+/** D24: versão, atribuição Open Food Facts e Open Prices (ODbL) e licenças. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
@@ -56,6 +57,11 @@ fun AboutScreen(onBack: () -> Unit) {
             Section(R.string.about_off_title, R.string.about_off_text)
             OutlinedButton(onClick = { uriHandler.openUri(OPEN_FOOD_FACTS_URL) }) {
                 Text(stringResource(R.string.about_off_open))
+            }
+
+            Section(R.string.about_prices_title, R.string.about_prices_text)
+            OutlinedButton(onClick = { uriHandler.openUri(OPEN_PRICES_URL) }) {
+                Text(stringResource(R.string.about_prices_open))
             }
 
             Section(R.string.about_licenses_title, R.string.about_licenses_text)
