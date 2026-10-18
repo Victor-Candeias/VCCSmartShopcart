@@ -25,3 +25,32 @@ replay_pid*
 
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
+# The Gradle wrapper jar must stay versioned so the build is reproducible.
+!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+local.properties
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+captures/
+.cxx/
+release/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Maestru derived index cache
+.maestru/.cache/
+
+# Signing material
+keystore.properties
+keystore/
+*.jks
+*.keystore
