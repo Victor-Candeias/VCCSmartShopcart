@@ -14,6 +14,7 @@ import pt.vcc.smartshopcart.core.common.IdProvider
 import pt.vcc.smartshopcart.core.common.SystemTimeProvider
 import pt.vcc.smartshopcart.core.common.TimeProvider
 import pt.vcc.smartshopcart.core.common.UuidIdProvider
+import pt.vcc.smartshopcart.core.database.ALL_MIGRATIONS
 import pt.vcc.smartshopcart.core.database.ShoppingDatabase
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -28,7 +29,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): ShoppingDatabase =
-        Room.databaseBuilder(context, ShoppingDatabase::class.java, ShoppingDatabase.NAME).build()
+        Room.databaseBuilder(context, ShoppingDatabase::class.java, ShoppingDatabase.NAME)
+            .addMigrations(*ALL_MIGRATIONS)
+            .build()
 
     @Provides fun shoppingListDao(db: ShoppingDatabase) = db.shoppingListDao()
     @Provides fun shoppingSessionDao(db: ShoppingDatabase) = db.shoppingSessionDao()
@@ -36,6 +39,7 @@ object DatabaseModule {
     @Provides fun storeDao(db: ShoppingDatabase) = db.storeDao()
     @Provides fun priceHistoryDao(db: ShoppingDatabase) = db.priceHistoryDao()
     @Provides fun priceCaptureDao(db: ShoppingDatabase) = db.priceCaptureDao()
+    @Provides fun externalPriceDao(db: ShoppingDatabase) = db.externalPriceDao()
 
     @Provides
     @IoDispatcher

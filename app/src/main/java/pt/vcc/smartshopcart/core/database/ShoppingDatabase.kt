@@ -2,12 +2,15 @@ package pt.vcc.smartshopcart.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import pt.vcc.smartshopcart.core.database.dao.ExternalPriceDao
 import pt.vcc.smartshopcart.core.database.dao.PriceCaptureDao
 import pt.vcc.smartshopcart.core.database.dao.PriceHistoryDao
 import pt.vcc.smartshopcart.core.database.dao.ProductDao
 import pt.vcc.smartshopcart.core.database.dao.ShoppingListDao
 import pt.vcc.smartshopcart.core.database.dao.ShoppingSessionDao
 import pt.vcc.smartshopcart.core.database.dao.StoreDao
+import pt.vcc.smartshopcart.core.database.entity.ExternalPriceEntity
+import pt.vcc.smartshopcart.core.database.entity.ExternalPriceSyncEntity
 import pt.vcc.smartshopcart.core.database.entity.PriceCaptureEntity
 import pt.vcc.smartshopcart.core.database.entity.ProductEntity
 import pt.vcc.smartshopcart.core.database.entity.ProductPriceHistoryEntity
@@ -29,8 +32,10 @@ import pt.vcc.smartshopcart.core.database.entity.StoreEntity
         ProductPriceHistoryEntity::class,
         PriceCaptureEntity::class,
         SessionPlannedItemStateEntity::class,
+        ExternalPriceEntity::class,
+        ExternalPriceSyncEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class ShoppingDatabase : RoomDatabase() {
@@ -40,6 +45,7 @@ abstract class ShoppingDatabase : RoomDatabase() {
     abstract fun storeDao(): StoreDao
     abstract fun priceHistoryDao(): PriceHistoryDao
     abstract fun priceCaptureDao(): PriceCaptureDao
+    abstract fun externalPriceDao(): ExternalPriceDao
 
     companion object {
         const val NAME = "vccsmartshopcart.db"

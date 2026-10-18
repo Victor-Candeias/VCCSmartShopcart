@@ -6,7 +6,8 @@ title: "Room: preços externos, estado de sincronização e migração 1→2"
 created: 2026-10-18
 owner: developer
 priority: high
-status: backlog
+status: done
+completed: 2026-10-18
 specs:
   - op-02-room-cache-spec
 track: vcc-open-prices
