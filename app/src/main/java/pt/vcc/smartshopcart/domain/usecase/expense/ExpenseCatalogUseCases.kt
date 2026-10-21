@@ -39,6 +39,12 @@ object ExpenseSearch {
         }
         return if (favoritesFirst) filtered.sortedByDescending { it.isFavorite } else filtered
     }
+
+    /** Existe um produto com exatamente este nome (ignorando acentos, maiúsculas e espaços nas pontas). */
+    fun hasExactMatch(products: List<ExpenseProduct>, query: String): Boolean {
+        val needle = normalize(query)
+        return needle.isNotEmpty() && products.any { normalize(it.name) == needle }
+    }
 }
 
 class GetExpenseCatalogUseCase @Inject constructor(private val repository: ExpenseRepository) {

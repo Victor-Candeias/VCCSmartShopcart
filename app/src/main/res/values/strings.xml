@@ -253,6 +253,8 @@
     <string name="expense_product_new">Novo produto</string>
     <string name="expense_product_add_only">Só nesta despesa</string>
     <string name="expense_product_save_catalog">Guardar no catálogo</string>
+    <string name="expense_query_use_once">«%1$s» só nesta despesa</string>
+    <string name="expense_query_save_catalog">Guardar «%1$s» no catálogo</string>
     <string name="expense_product_edit">Editar produto</string>
     <string name="expense_product_hide">Ocultar</string>
     <string name="expense_product_show">Mostrar</string>

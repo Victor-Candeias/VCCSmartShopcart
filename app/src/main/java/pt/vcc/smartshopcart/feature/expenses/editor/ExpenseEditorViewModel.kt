@@ -47,6 +47,8 @@ data class ExpenseEditorUiState(
     /** Produtos do painel: categoria escolhida, pesquisa e favoritos primeiro. */
     val panelProducts: List<ExpenseProduct>,
     val query: String,
+    /** Nome pesquisado sem produto correspondente no catálogo; permite usá-lo só nesta despesa ou guardá-lo. */
+    val newProductName: String?,
     val establishmentSuggestions: List<String>,
     /** Erro da última tentativa de gravação. */
     val error: ExpenseValidation?,
@@ -109,6 +111,7 @@ class ExpenseEditorViewModel @Inject constructor(
                 favoritesFirst = true,
             ),
             query = q,
+            newProductName = q.trim().takeIf { it.isNotEmpty() && !ExpenseSearch.hasExactMatch(catalog.products, it) },
             establishmentSuggestions = establishments.map { it.name }
                 .filter { name ->
                     val normalized = ExpenseSearch.normalize(name)
@@ -221,6 +224,16 @@ class ExpenseEditorViewModel @Inject constructor(
 
     fun addTemporaryProduct(name: String, priceCents: Long?) {
         update { it.addCustomProduct(name, ids.newId(), priceCents) }
+    }
+
+    /** Usa o texto pesquisado como produto só desta despesa; devolve a chave da linha para pedir o preço. */
+    fun addQueryAsTemporary(): String? {
+        val name = query.value.trim().takeIf { it.isNotEmpty() } ?: return null
+        val key = ids.newId()
+        update { it.addCustomProduct(name, key, null) }
+        if (draft.value?.lines?.any { it.key == key } != true) return null
+        setQuery("")
+        return key
     }
 
     fun changeQuantity(lineKey: String, delta: Int) = update { it.changeQuantity(lineKey, delta) }

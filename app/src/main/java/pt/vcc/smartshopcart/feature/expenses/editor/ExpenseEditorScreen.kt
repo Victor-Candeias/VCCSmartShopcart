@@ -105,6 +105,7 @@ fun ExpenseEditorScreen(
     var showDate by rememberSaveable { mutableStateOf(false) }
     var showTime by rememberSaveable { mutableStateOf(false) }
     var showNewProduct by rememberSaveable { mutableStateOf(false) }
+    var newProductToCatalog by rememberSaveable { mutableStateOf(false) }
     var confirmCancel by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
@@ -154,7 +155,15 @@ fun ExpenseEditorScreen(
                 onEditPrice = { priceLineKey = it },
                 onPickDate = { showDate = true },
                 onPickTime = { showTime = true },
-                onNewProduct = { showNewProduct = true },
+                onNewProduct = {
+                    newProductToCatalog = false
+                    showNewProduct = true
+                },
+                onUseQueryOnce = { viewModel.addQueryAsTemporary()?.let { priceLineKey = it } },
+                onSaveQueryToCatalog = {
+                    newProductToCatalog = true
+                    showNewProduct = true
+                },
                 modifier = Modifier.weight(1f),
             )
             TotalBar(
@@ -221,7 +230,7 @@ fun ExpenseEditorScreen(
                 showNewProduct = false
                 viewModel.createProduct(categoryId, name, icon, price)
             },
-            allowTemporary = true,
+            allowTemporary = !newProductToCatalog,
             onConfirmTemporary = { name, price ->
                 showNewProduct = false
                 viewModel.addTemporaryProduct(name, price)
@@ -276,6 +285,8 @@ private fun EditorContent(
     onPickDate: () -> Unit,
     onPickTime: () -> Unit,
     onNewProduct: () -> Unit,
+    onUseQueryOnce: () -> Unit,
+    onSaveQueryToCatalog: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val draft = state.draft
@@ -381,6 +392,17 @@ private fun EditorContent(
                 }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.newProductName?.let { name ->
+                    AssistChip(
+                        onClick = onUseQueryOnce,
+                        label = { Text(stringResource(R.string.expense_query_use_once, name)) },
+                        leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                    )
+                    AssistChip(
+                        onClick = onSaveQueryToCatalog,
+                        label = { Text(stringResource(R.string.expense_query_save_catalog, name)) },
+                    )
+                }
                 state.panelProducts.forEach { product ->
                     val name = listOfNotNull(product.icon, product.name).joinToString(" ")
                     val description = stringResource(R.string.expense_add_named, product.name)
@@ -390,11 +412,13 @@ private fun EditorContent(
                         modifier = Modifier.semantics { contentDescription = description },
                     )
                 }
-                AssistChip(
-                    onClick = onNewProduct,
-                    label = { Text(stringResource(R.string.expense_product_new)) },
-                    leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                )
+                if (state.newProductName == null) {
+                    AssistChip(
+                        onClick = onNewProduct,
+                        label = { Text(stringResource(R.string.expense_product_new)) },
+                        leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                    )
+                }
             }
             OutlinedTextField(
                 value = draft.notes,

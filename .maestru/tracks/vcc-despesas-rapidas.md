@@ -23,4 +23,5 @@ status: active
 | dr-05-price-suggestions | Sugestão de preços por estabelecimento, último consumo e catálogo | done | 2026-10-18 | developer | medium | 2026-10-18 |  | dr-03-editor | [dr-05-price-suggestions](../specs/vcc-despesas-rapidas/dr-05-price-suggestions-spec.md) |
 | dr-06-release | Testes de aceitação, acessibilidade, documentação e APK release 0.4.0 assinado | done | 2026-10-18 | developer | medium | 2026-10-18 |  | dr-04-history-repeat, dr-05-price-suggestions | [dr-06-release](../specs/vcc-despesas-rapidas/dr-06-release-spec.md) |
 | dr-07-ad-hoc-products | Permitir produtos temporários em despesas rápidas | done | 2026-10-21 | developer | high | 2026-10-21 |  |  | [dr-07-ad-hoc-products](../specs/vcc-despesas-rapidas/dr-07-ad-hoc-products-spec.md) |
+| dr-08-inline-ad-hoc-product | Adicionar produto inexistente a partir da pesquisa (temporário ou catálogo) | done | 2026-10-21 | developer | high | 2026-10-21 |  |  | [dr-08-inline-ad-hoc-product](../specs/vcc-despesas-rapidas/dr-08-inline-ad-hoc-product-spec.md) |
 <!-- /maestru:work-items-list -->

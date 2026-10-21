@@ -61,6 +61,16 @@ class ExpenseCatalogUseCasesTest {
     }
 
     @Test
+    fun `correspondencia exata ignora acentos e maiusculas mas nao aceita nomes parciais`() {
+        val products = listOf(product("galao", "cafe", "Galão", 0))
+
+        assertTrue(ExpenseSearch.hasExactMatch(products, " GALAO "))
+        assertFalse(ExpenseSearch.hasExactMatch(products, "gal"))
+        assertFalse(ExpenseSearch.hasExactMatch(products, "Galão grande"))
+        assertFalse(ExpenseSearch.hasExactMatch(products, "  "))
+    }
+
+    @Test
     fun `catalogo ordena por categoria e ordem e esconde ocultos`() = runTest {
         seed()
         val catalog = GetExpenseCatalogUseCase(repository)
