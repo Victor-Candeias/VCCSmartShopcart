@@ -219,6 +219,10 @@ class ExpenseEditorViewModel @Inject constructor(
         }
     }
 
+    fun addTemporaryProduct(name: String, priceCents: Long?) {
+        update { it.addCustomProduct(name, ids.newId(), priceCents) }
+    }
+
     fun changeQuantity(lineKey: String, delta: Int) = update { it.changeQuantity(lineKey, delta) }
 
     fun setPrice(lineKey: String, unitPriceCents: Long) = update { it.setPrice(lineKey, unitPriceCents) }

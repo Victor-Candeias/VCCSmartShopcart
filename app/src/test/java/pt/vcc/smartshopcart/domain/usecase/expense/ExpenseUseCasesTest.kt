@@ -105,6 +105,20 @@ class ExpenseUseCasesTest {
     }
 
     @Test
+    fun `produto temporario fica apenas no item da despesa`() = runTest {
+        val save = SaveExpenseUseCase(repository, drafts)
+        val draft = ExpenseEditorDraft(occurredAt = 5_000)
+            .addCustomProduct("  Despesa ocasional  ", "l1", 275)
+
+        val result = save(draft) as SaveExpenseResult.Saved
+        val stored = repository.getExpense(result.expenseId)!!
+
+        assertEquals("Despesa ocasional", stored.items.single().nameSnapshot)
+        assertNull(stored.items.single().productId)
+        assertTrue(repository.observeProducts(null).first().none { it.name == "Despesa ocasional" })
+    }
+
+    @Test
     fun `guardar invalido nao grava nem limpa o rascunho`() = runTest {
         val save = SaveExpenseUseCase(repository, drafts)
         val draft = ExpenseEditorDraft(occurredAt = 5_000).addProduct(nata, "l1", null)

@@ -251,6 +251,8 @@
     <string name="expense_search">Pesquisar produto</string>
     <string name="expense_search_clear">Limpar pesquisa</string>
     <string name="expense_product_new">Novo produto</string>
+    <string name="expense_product_add_only">Só nesta despesa</string>
+    <string name="expense_product_save_catalog">Guardar no catálogo</string>
     <string name="expense_product_edit">Editar produto</string>
     <string name="expense_product_hide">Ocultar</string>
     <string name="expense_product_show">Mostrar</string>

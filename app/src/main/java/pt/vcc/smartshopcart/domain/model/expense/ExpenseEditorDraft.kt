@@ -46,6 +46,13 @@ data class ExpenseEditorDraft(
         }
     }
 
+    /** Acrescenta um item ocasional sem o associar ao catálogo de produtos. */
+    fun addCustomProduct(name: String, key: String, unitPriceCents: Long?): ExpenseEditorDraft {
+        val cleanName = name.trim()
+        require(cleanName.isNotEmpty()) { "Nome obrigatório" }
+        return copy(lines = lines + ExpenseEditorLine(key, null, cleanName, 1, unitPriceCents))
+    }
+
     fun changeQuantity(key: String, delta: Int): ExpenseEditorDraft = updateLine(key) { line ->
         line.copy(quantity = (line.quantity + delta).coerceIn(1, MAX_QUANTITY))
     }

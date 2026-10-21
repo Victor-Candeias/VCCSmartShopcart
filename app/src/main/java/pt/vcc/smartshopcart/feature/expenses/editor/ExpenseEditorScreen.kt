@@ -221,6 +221,11 @@ fun ExpenseEditorScreen(
                 showNewProduct = false
                 viewModel.createProduct(categoryId, name, icon, price)
             },
+            allowTemporary = true,
+            onConfirmTemporary = { name, price ->
+                showNewProduct = false
+                viewModel.addTemporaryProduct(name, price)
+            },
         )
     }
     if (confirmCancel) {

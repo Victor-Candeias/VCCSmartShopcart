@@ -42,6 +42,8 @@ fun ExpenseProductDialog(
     initialDefaultPriceCents: Long?,
     onDismiss: () -> Unit,
     onConfirm: (categoryId: String, name: String, icon: String?, defaultPriceCents: Long?) -> Unit,
+    allowTemporary: Boolean = false,
+    onConfirmTemporary: ((name: String, defaultPriceCents: Long?) -> Unit)? = null,
 ) {
     var categoryId by rememberSaveable { mutableStateOf(initialCategoryId ?: categories.firstOrNull()?.id) }
     var name by rememberSaveable { mutableStateOf(initialName) }
@@ -79,10 +81,20 @@ fun ExpenseProductDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                enabled = name.isNotBlank() && categoryId != null && !priceInvalid,
-                onClick = { onConfirm(categoryId!!, name.trim(), icon.trim().ifEmpty { null }, priceCents) },
-            ) { Text(stringResource(R.string.action_save)) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (allowTemporary && onConfirmTemporary != null) {
+                    TextButton(
+                        enabled = name.isNotBlank() && !priceInvalid,
+                        onClick = { onConfirmTemporary(name.trim(), priceCents) },
+                    ) { Text(stringResource(R.string.expense_product_add_only)) }
+                }
+                TextButton(
+                    enabled = name.isNotBlank() && categoryId != null && !priceInvalid,
+                    onClick = { onConfirm(categoryId!!, name.trim(), icon.trim().ifEmpty { null }, priceCents) },
+                ) {
+                    Text(stringResource(if (allowTemporary) R.string.expense_product_save_catalog else R.string.action_save))
+                }
+            }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
