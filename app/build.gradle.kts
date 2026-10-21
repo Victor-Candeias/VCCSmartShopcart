@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-val appVersionName = "0.5.0"
+val appVersionName = "0.5.1"
 
 // APK gerado como VCCSmartShopcart-<versão>-<buildType>.apk
 base.archivesName = "VCCSmartShopcart-$appVersionName"
@@ -37,7 +37,7 @@ android {
             version = release(37)
         }
 
-        versionCode = 7
+        versionCode = 8
         versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
