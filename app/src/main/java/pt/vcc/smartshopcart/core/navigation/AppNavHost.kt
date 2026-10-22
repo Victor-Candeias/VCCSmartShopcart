@@ -46,6 +46,7 @@ import pt.vcc.smartshopcart.feature.history.HistoryScreen
 import pt.vcc.smartshopcart.feature.home.HomeScreen
 import pt.vcc.smartshopcart.feature.product.ItemEditorScreen
 import pt.vcc.smartshopcart.feature.scanner.ScannerScreen
+import pt.vcc.smartshopcart.feature.security.PinSetupScreen
 import pt.vcc.smartshopcart.domain.model.SessionMode
 import pt.vcc.smartshopcart.feature.session.PlannedSessionScreen
 import pt.vcc.smartshopcart.feature.settings.AboutScreen
@@ -145,8 +146,19 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 HistoryScreen(onOpenPurchase = { sessionId -> navController.navigate(HistoryDetailRoute(sessionId)) })
             }
             composable<HistoryDetailRoute> { HistoryDetailScreen(onBack = { navController.popBackStack() }) }
-            composable<SettingsRoute> { SettingsScreen(onOpenAbout = { navController.navigate(AboutRoute) }) }
+            composable<SettingsRoute> {
+                SettingsScreen(
+                    onOpenAbout = { navController.navigate(AboutRoute) },
+                    onOpenPinSetup = { mode -> navController.navigate(PinSetupRoute(mode.name)) },
+                )
+            }
             composable<AboutRoute> { AboutScreen(onBack = { navController.popBackStack() }) }
+            composable<PinSetupRoute> {
+                PinSetupScreen(
+                    onBack = { navController.popBackStack() },
+                    onFinished = { navController.popBackStack<PinSetupRoute>(inclusive = true) },
+                )
+            }
             composable<CalculatorRoute> {
                 CalculatorScreen(
                     onBack = { navController.popBackStack() },

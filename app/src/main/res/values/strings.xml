@@ -231,6 +231,42 @@
     <string name="settings_about">Sobre</string>
     <string name="settings_about_summary">Versão, atribuição Open Food Facts e Open Prices e licenças</string>
 
+    <!-- Segurança: PIN e biometria -->
+    <string name="security_title">Segurança</string>
+    <string name="security_pin_lock">Bloqueio com PIN</string>
+    <string name="security_pin_lock_on">Pede o PIN ao abrir a app e ao voltar depois de 30 segundos</string>
+    <string name="security_pin_lock_off">Proteja o acesso à app com um PIN de 4 a 6 dígitos</string>
+    <string name="security_change_pin">Alterar PIN</string>
+    <string name="security_biometric">Desbloqueio biométrico</string>
+    <string name="security_biometric_available">Desbloquear com impressão digital ou rosto; o PIN continua disponível</string>
+    <string name="security_biometric_needs_pin">Ative primeiro o bloqueio com PIN</string>
+    <string name="security_biometric_none_enrolled">Registe uma impressão digital ou rosto nas definições do Android</string>
+    <string name="security_biometric_unavailable">Este dispositivo não tem biometria compatível</string>
+    <string name="security_forgot_pin_note">O PIN não pode ser recuperado. Se o esquecer, terá de limpar os dados da app nas definições do Android.</string>
+    <string name="biometric_enable_title">Ativar desbloqueio biométrico</string>
+    <string name="biometric_enable_subtitle">Confirme a sua identidade</string>
+    <string name="biometric_unlock_title">Desbloquear VCCSmartShopcart</string>
+    <string name="biometric_use_pin">Usar PIN</string>
+    <string name="lock_title">Introduza o PIN</string>
+    <string name="lock_use_biometric">Usar biometria</string>
+    <string name="lock_locked_out">Demasiadas tentativas. Tente novamente dentro de %1$d s.</string>
+    <plurals name="lock_wrong_pin">
+        <item quantity="one">PIN incorreto. Resta %d tentativa.</item>
+        <item quantity="other">PIN incorreto. Restam %d tentativas.</item>
+    </plurals>
+    <string name="pin_dots_description">%1$d de %2$d dígitos introduzidos</string>
+    <plurals name="pin_digits_entered">
+        <item quantity="one">%d dígito introduzido</item>
+        <item quantity="other">%d dígitos introduzidos</item>
+    </plurals>
+    <string name="pin_setup_create_title">Criar PIN</string>
+    <string name="pin_setup_change_title">Alterar PIN</string>
+    <string name="pin_setup_disable_title">Desativar PIN</string>
+    <string name="pin_step_current">Introduza o PIN atual</string>
+    <string name="pin_step_new">Introduza um novo PIN (4 a 6 dígitos)</string>
+    <string name="pin_step_confirm">Confirme o novo PIN</string>
+    <string name="pin_error_mismatch">Os PIN não coincidem. Introduza um novo PIN.</string>
+
     <!-- Sobre -->
     <string name="about_version">Versão %1$s</string>
     <string name="about_description">Calculadora e lista de compras com leitura de código de barras e de preços, a funcionar offline.</string>

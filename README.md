@@ -16,6 +16,11 @@ orçamento vs. realizado e gráficos (evolução, categorias, estabelecimentos, 
 O relatório filtrado pode ser exportado em **CSV** (Excel pt-PT), **JSON** versionado ou **PDF** multipágina, gerados
 no dispositivo, e guardado numa pasta escolhida (Storage Access Framework) ou partilhado com outra aplicação.
 
+Em **Definições → Segurança** é possível proteger a app com um **PIN de 4 a 6 dígitos** (guardado apenas como hash
+PBKDF2 com sal) e, opcionalmente, ativar o **desbloqueio biométrico** (impressão digital/rosto de classe forte). A app
+volta a bloquear após 30 s em segundo plano; 5 tentativas erradas bloqueiam o PIN temporariamente (30 s, duplicando
+até 10 min). O PIN não é recuperável: desativá-lo ou alterá-lo exige o PIN atual.
+
 ## Documentação
 
 - Documento de implementação: [Documents/Implementacao_MVP_App_Compras.md](Documents/Implementacao_MVP_App_Compras.md)

@@ -119,6 +119,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment.ktx)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)

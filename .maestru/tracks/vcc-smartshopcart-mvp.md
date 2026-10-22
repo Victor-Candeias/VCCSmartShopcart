@@ -24,4 +24,5 @@ status: active
 | sc-06-history-stabilization | Histórico, definições, acessibilidade e APK assinado | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-03-lists, sc-05-ocr-capture | [sc-06-history-stabilization](../specs/vcc-smartshopcart-mvp/sc-06-history-stabilization-spec.md) |
 | sc-07-icon-scan-ocr | Ícone da app, botão Scan com texto e OCR de nome e preço | done | 2026-10-18 | developer | high | 2026-10-18 |  | sc-06-history-stabilization | [sc-07-icon-scan-ocr](../specs/vcc-smartshopcart-mvp/sc-07-icon-scan-ocr-spec.md) |
 | sc-08-price-field-ime | Campo de preço escondido pelo teclado no ecrã Ler produto e preço | done | 2026-10-18 |  | high | 2026-10-18 |  |  |  |
+| sc-09-pin-biometric-lock | Bloqueio da app com PIN e ativação de desbloqueio biométrico | done | 2026-10-22 | developer | high | 2026-10-22 |  |  | [sc-09-pin-biometric-lock](../specs/vcc-smartshopcart-mvp/sc-09-pin-biometric-lock-spec.md) |
 <!-- /maestru:work-items-list -->

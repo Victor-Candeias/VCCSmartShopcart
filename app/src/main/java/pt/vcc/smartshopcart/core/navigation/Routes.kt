@@ -22,6 +22,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object AboutRoute
 
+/** Criar, alterar ou desativar o PIN; [mode] é o nome de um `PinSetupMode`. */
+@Serializable data class PinSetupRoute(val mode: String)
+
 @Serializable data class PlannedSessionRoute(val sessionId: String)
 
 /** Leitor de código de barras; [listItemId] liga o item lido a um artigo planeado. */
