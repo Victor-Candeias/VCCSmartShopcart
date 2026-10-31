@@ -37,6 +37,7 @@ object DatabaseModule {
 
     @Provides fun shoppingListDao(db: ShoppingDatabase) = db.shoppingListDao()
     @Provides fun shoppingSessionDao(db: ShoppingDatabase) = db.shoppingSessionDao()
+    @Provides fun sharedPurchaseDao(db: ShoppingDatabase) = db.sharedPurchaseDao()
     @Provides fun productDao(db: ShoppingDatabase) = db.productDao()
     @Provides fun storeDao(db: ShoppingDatabase) = db.storeDao()
     @Provides fun priceHistoryDao(db: ShoppingDatabase) = db.priceHistoryDao()
