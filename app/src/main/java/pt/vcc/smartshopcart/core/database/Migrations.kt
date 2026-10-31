@@ -104,4 +104,22 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
-val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+/** v4 -> v5: participantes e atribuicoes de linhas. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS shopping_participants (
+            id TEXT NOT NULL PRIMARY KEY, sessionId TEXT NOT NULL,
+            name TEXT NOT NULL, sortOrder INTEGER NOT NULL,
+            FOREIGN KEY(sessionId) REFERENCES shopping_sessions(id) ON UPDATE NO ACTION ON DELETE CASCADE
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_shopping_participants_sessionId ON shopping_participants(sessionId)")
+        db.execSQL("""CREATE TABLE IF NOT EXISTS shopping_item_assignments (
+            itemId TEXT NOT NULL PRIMARY KEY, participantId TEXT NOT NULL,
+            FOREIGN KEY(itemId) REFERENCES shopping_session_items(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+            FOREIGN KEY(participantId) REFERENCES shopping_participants(id) ON UPDATE NO ACTION ON DELETE CASCADE
+        )""")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_shopping_item_assignments_participantId ON shopping_item_assignments(participantId)")
+    }
+}
+
+val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
