@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pt.vcc.smartshopcart.R
+import pt.vcc.smartshopcart.feature.sharedshopping.SharedPurchaseCalculator
+import pt.vcc.smartshopcart.feature.sharedshopping.PurchaseLine
 import pt.vcc.smartshopcart.core.common.DateTimeText
 import pt.vcc.smartshopcart.core.money.MoneyFormatter
 import pt.vcc.smartshopcart.core.ui.components.BudgetBar
@@ -124,6 +126,23 @@ fun HistoryDetailScreen(
                             Text(stringResource(R.string.history_list_name, it), style = MaterialTheme.typography.bodyMedium)
                         }
                         state.budget?.let { BudgetBar(it, Modifier.padding(top = 4.dp)) }
+                        if (state.shared.participants.isNotEmpty()) {
+                            val summary = SharedPurchaseCalculator.calculate(
+                                state.shared.participants,
+                                state.items.map { item -> PurchaseLine(
+                                    id = item.id, name = item.name ?: "Produto",
+                                    unitPriceCents = item.totalCents,
+                                    participantId = state.shared.assignments[item.id],
+                                ) },
+                            )
+                            Text("Distribuicao por cliente", style = MaterialTheme.typography.titleMedium)
+                            state.shared.participants.forEach { person ->
+                                Text("${person.name}: ${MoneyFormatter.format(summary.totalsByParticipant.getValue(person.id))}")
+                            }
+                            if (summary.unassignedCents > 0) {
+                                Text("Por atribuir: ${MoneyFormatter.format(summary.unassignedCents)}")
+                            }
+                        }
                         Text(
                             stringResource(R.string.history_read_only) + " " + stringResource(R.string.history_price_hint),
                             style = MaterialTheme.typography.bodySmall,
