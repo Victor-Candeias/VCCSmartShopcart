@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import pt.vcc.smartshopcart.data.repository.SharedPurchaseRepository
+import pt.vcc.smartshopcart.data.repository.SharedPurchaseData
 import pt.vcc.smartshopcart.core.navigation.HistoryDetailRoute
 import pt.vcc.smartshopcart.domain.model.ShoppingSession
 import pt.vcc.smartshopcart.domain.model.ShoppingSessionItem
@@ -33,6 +35,7 @@ import javax.inject.Inject
 
 data class HistoryDetailUiState(
     val loading: Boolean = true,
+    val shared: SharedPurchaseData = SharedPurchaseData(emptyList(), emptyMap()),
     val missing: Boolean = false,
     val session: ShoppingSession? = null,
     val storeName: String? = null,
@@ -57,6 +60,7 @@ sealed interface HistoryDetailEvent {
 class HistoryDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     sessions: ShoppingSessionRepository,
+    sharedPurchases: SharedPurchaseRepository,
     settings: SettingsRepository,
     calculateBudget: CalculateRemainingBudgetUseCase,
     observePriceHistory: ObservePriceHistoryUseCase,
