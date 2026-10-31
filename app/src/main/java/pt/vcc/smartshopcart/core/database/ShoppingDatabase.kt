@@ -1,5 +1,8 @@
 package pt.vcc.smartshopcart.core.database
 
+import pt.vcc.smartshopcart.core.database.dao.SharedPurchaseDao
+import pt.vcc.smartshopcart.core.database.entity.ShoppingParticipantEntity
+import pt.vcc.smartshopcart.core.database.entity.ShoppingItemAssignmentEntity
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import pt.vcc.smartshopcart.core.database.dao.ExpenseDao
@@ -35,6 +38,8 @@ import pt.vcc.smartshopcart.core.database.entity.StoreEntity
         StoreEntity::class,
         ShoppingSessionEntity::class,
         ShoppingSessionItemEntity::class,
+        ShoppingParticipantEntity::class,
+        ShoppingItemAssignmentEntity::class,
         ProductEntity::class,
         ProductPriceHistoryEntity::class,
         PriceCaptureEntity::class,
@@ -53,6 +58,7 @@ import pt.vcc.smartshopcart.core.database.entity.StoreEntity
 abstract class ShoppingDatabase : RoomDatabase() {
     abstract fun shoppingListDao(): ShoppingListDao
     abstract fun shoppingSessionDao(): ShoppingSessionDao
+    abstract fun sharedPurchaseDao(): SharedPurchaseDao
     abstract fun productDao(): ProductDao
     abstract fun storeDao(): StoreDao
     abstract fun priceHistoryDao(): PriceHistoryDao
@@ -63,6 +69,6 @@ abstract class ShoppingDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "vccsmartshopcart.db"
-        const val VERSION = 4
+        const val VERSION = 5
     }
 }
