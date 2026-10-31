@@ -55,6 +55,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import pt.vcc.smartshopcart.R
+import pt.vcc.smartshopcart.feature.sharedshopping.SharedPurchasePanel
+import pt.vcc.smartshopcart.feature.sharedshopping.PurchaseLine
 import pt.vcc.smartshopcart.core.money.MoneyFormatter
 import pt.vcc.smartshopcart.core.ui.components.BudgetBar
 import pt.vcc.smartshopcart.core.ui.components.NumericKeypad
@@ -119,7 +121,7 @@ fun CalculatorScreen(
                             Icon(painterResource(R.drawable.ic_barcode), contentDescription = null, modifier = Modifier.size(20.dp))
                             Text(stringResource(R.string.action_scan_short), Modifier.padding(start = 4.dp))
                         }
-                        TextButton(onClick = { confirmComplete = true }) { Text(stringResource(R.string.action_complete)) }
+                        TextButton(onClick = { confirmComplete = true }, enabled = state.sharedSummary?.canFinish != false) { Text(stringResource(R.string.action_complete)) }
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
                         }
