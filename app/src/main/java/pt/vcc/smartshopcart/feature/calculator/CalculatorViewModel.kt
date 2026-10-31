@@ -18,6 +18,11 @@ import pt.vcc.smartshopcart.core.money.MoneyParser
 import pt.vcc.smartshopcart.core.navigation.CalculatorRoute
 import pt.vcc.smartshopcart.core.ui.components.KeypadInput
 import pt.vcc.smartshopcart.core.ui.components.KeypadKey
+import pt.vcc.smartshopcart.data.repository.SharedPurchaseRepository
+import pt.vcc.smartshopcart.data.repository.SharedPurchaseData
+import pt.vcc.smartshopcart.feature.sharedshopping.PurchaseLine
+import pt.vcc.smartshopcart.feature.sharedshopping.SharedPurchaseCalculator
+import pt.vcc.smartshopcart.feature.sharedshopping.SharedPurchaseSummary
 import pt.vcc.smartshopcart.domain.model.SessionStatus
 import pt.vcc.smartshopcart.domain.model.ShoppingSessionItem
 import pt.vcc.smartshopcart.domain.repository.SettingsRepository
@@ -43,6 +48,8 @@ data class CalculatorUiState(
     val items: List<ShoppingSessionItem> = emptyList(),
     val budget: BudgetStatus = BudgetStatus(0, null, null, BudgetLevel.NONE, 0f),
     val entry: String = "",
+    val shared: SharedPurchaseData = SharedPurchaseData(emptyList(), emptyMap()),
+    val sharedSummary: SharedPurchaseSummary? = null,
 ) {
     val entryCents: Long? get() = MoneyParser.parseToCents(entry.removeSuffix(","))?.takeIf { it > 0 }
 }
@@ -58,6 +65,7 @@ sealed interface CalculatorEvent {
 class CalculatorViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     sessions: ShoppingSessionRepository,
+    private val sharedPurchases: SharedPurchaseRepository,
     settings: SettingsRepository,
     private val addItem: AddSessionItemUseCase,
     private val removeItem: RemoveSessionItemUseCase,
@@ -77,7 +85,8 @@ class CalculatorViewModel @Inject constructor(
         sessions.observeSession(sessionId),
         settings.settings,
         savedStateHandle.getStateFlow(KEY_ENTRY, ""),
-    ) { details, appSettings, entry ->
+        sharedPurchases.observe(sessionId),
+    ) { details, appSettings, entry, shared ->
         if (details == null) {
             CalculatorUiState(loading = false, missing = true)
         } else {
@@ -93,9 +102,23 @@ class CalculatorViewModel @Inject constructor(
                     warningPercent = appSettings.budgetWarningPercent,
                 ),
                 entry = entry,
+                shared = shared,
+                sharedSummary = if (shared.participants.isEmpty()) null else SharedPurchaseCalculator.calculate(
+                    shared.participants,
+                    details.items.map { item -> PurchaseLine(
+                        id = item.id, name = item.name ?: "Produto",
+                        unitPriceCents = item.totalCents, participantId = shared.assignments[item.id],
+                    ) },
+                ),
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CalculatorUiState())
+
+    fun onAddParticipant(name: String) = guarded { sharedPurchases.addParticipant(sessionId, name) }
+
+    fun onAssignItem(itemId: String, participantId: String?) = guarded {
+        sharedPurchases.assign(sessionId, itemId, participantId)
+    }
 
     fun onKey(key: KeypadKey) {
         savedStateHandle[KEY_ENTRY] = KeypadInput.apply(savedStateHandle[KEY_ENTRY] ?: "", key)
