@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -59,8 +57,8 @@ fun SharedPurchasePanel(
         if (summary.unassignedCents > 0) {
             Text("Por atribuir: ${summary.unassignedCents.asEuro()}")
         }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(lines, key = { it.id }) { line ->
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            lines.forEach { line ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
                         Text("${line.name} · ${line.totalCents.asEuro()}")
