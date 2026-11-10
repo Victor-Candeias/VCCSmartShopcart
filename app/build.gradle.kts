@@ -8,7 +8,8 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-val appVersionName = "0.6.0"
+val appVersionName = providers.gradleProperty("appVersionName").orElse("0.6.0").get()
+val appVersionCode = providers.gradleProperty("appVersionCode").orElse("9").get().toInt()
 
 // APK gerado como VCCSmartShopcart-<versão>-<buildType>.apk
 base.archivesName = "VCCSmartShopcart-$appVersionName"
@@ -37,7 +38,7 @@ android {
             version = release(37)
         }
 
-        versionCode = 9
+        versionCode = appVersionCode
         versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
